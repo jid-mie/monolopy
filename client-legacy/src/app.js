@@ -89,10 +89,9 @@ const chest16 = new Card("Pay a £10 fine (cancel) or take a Chance (OK)")
 
 const chestCards = [chest1,chest2,chest3,chest4,chest5,chest6,chest7,chest8,chest9,chest10,chest11,chest12,chest13,chest14,chest15,chest16]
 
-window.onload = function(){
+document.addEventListener("DOMContentLoaded", function () {
   ReactDOM.render(
-    <GameContainer properties={properties} chance={chanceCards} chest = {chestCards}/>,
-    document.getElementById('app')
-    );
-}
-
+    <GameContainer properties={properties} chance={chanceCards} chest={chestCards} />,
+    document.getElementById("app")
+  );
+});

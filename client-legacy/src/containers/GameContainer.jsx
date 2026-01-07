@@ -22,7 +22,7 @@ class GameContainer extends React.Component{
       activePlayerIndex: null,
       rolled: false,
       won: false,
-      showNewGameModal: false
+      showNewGameModal: true
     }
 
     this.playerNames = []
@@ -61,6 +61,9 @@ class GameContainer extends React.Component{
   }
 
   updateActivePlayer(){
+    if (!this.state.activePlayer) {
+      return
+    }
     if (this.state.rolled){
       this.setState({activePlayer: this.players[(this.state.activePlayerIndex + 1) % (this.players.length)], 
                      activePlayerIndex: (this.state.activePlayerIndex + 1) % (this.players.length),  
@@ -74,6 +77,9 @@ class GameContainer extends React.Component{
   }
 
   updatePlayerPosition(moveValue,double){
+    if (!this.state.activePlayer) {
+      return
+    }
     if (double && this.state.activePlayer.inJail){
       this.state.activePlayer.leaveJailWithDouble()
     }
@@ -90,6 +96,9 @@ class GameContainer extends React.Component{
   }
 
   purchaseProperty(){
+    if (!this.state.activePlayer) {
+      return
+    }
     let currentPlayer = this.state.activePlayer
     
     let currentSquare = this.state.squares[currentPlayer.position]
@@ -229,6 +238,9 @@ class GameContainer extends React.Component{
   }
 
   handleEscapeClick(){
+    if (!this.state.activePlayer) {
+      return
+    }
     this.state.activePlayer.leaveJail()
   }
 

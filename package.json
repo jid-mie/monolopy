@@ -1,22 +1,16 @@
 {
-  "name": "express_backend",
+  "name": "monopoly",
   "version": "1.0.0",
-  "main": "server.js",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.js"
+    "client:dev": "npm run dev --prefix client",
+    "client:build": "npm run build --prefix client",
+    "client:preview": "npm run preview --prefix client",
+    "server:dev": "npm run dev --prefix server",
+    "server:start": "npm start --prefix server",
+    "dev": "concurrently -n client,server \"npm:client:dev\" \"npm:server:dev\""
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "express": "^4.16.3",
-    "nodemon": "^1.18.3",
-    "npm": "^5.8.0",
-    "react": "^16.0.0",
-    "react-bootstrap": "^0.31.5",
-    "react-dom": "^16.0.0"
-  },
-  "devDependencies": {},
-  "description": ""
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
 }

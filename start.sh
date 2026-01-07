@@ -1,18 +1,13 @@
 
 #!/bin/sh
-echo "installing npm modules..."
+echo "installing root npm modules..."
 npm install
 
-echo "installing npm modules..."
-cd "client"
-npm install
+echo "installing server npm modules..."
+npm install --prefix server
 
-echo "bundling files..."
-npm run webpack
-cd ".."
+echo "installing client npm modules..."
+npm install --prefix client
 
-echo "opening browser window..."
-open http://localhost:3000
-
-echo "starting server..."
-npm start
+echo "starting dev servers..."
+npm run dev

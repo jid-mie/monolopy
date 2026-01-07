@@ -12,13 +12,16 @@ class Buy extends React.Component{
   }
 
   handleClick(){
+    if (this.props.disabled) {
+      return
+    }
     this.props.handleClick()
   }
 
   render(){
     return(
       <div className="buy-button-div">
-        <Button onClick={this.handleClick}>Buy Property</Button>
+        <Button onClick={this.handleClick} disabled={this.props.disabled}>Buy Property</Button>
       </div>
     )
   }

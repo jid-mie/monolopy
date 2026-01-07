@@ -12,13 +12,16 @@ class End extends React.Component{
   }
 
   handleClick(){
+    if (this.props.disabled) {
+      return
+    }
     this.props.updateActivePlayer()
   }
 
   render(){
     return(
       <div className="end-div">
-        <Button onClick={this.handleClick}>End Turn</Button>
+        <Button onClick={this.handleClick} disabled={this.props.disabled}>End Turn</Button>
       </div>
     )
   }

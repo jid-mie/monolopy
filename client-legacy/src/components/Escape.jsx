@@ -9,13 +9,16 @@ class Escape extends React.Component{
   }
 
   handleClick(){
+    if (this.props.disabled) {
+      return
+    }
     this.props.handleClick()
   }
 
   render(){
     return(
       <div className="leave-jail-div">
-        <Button onClick={this.handleClick}>Use GOOJF Card</Button>
+        <Button onClick={this.handleClick} disabled={this.props.disabled}>Use GOOJF Card</Button>
       </div>
     )
   }

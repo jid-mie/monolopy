@@ -27,7 +27,10 @@ var config = {
           loader: "css-loader"
         },
         {
-          loader: "sass-loader"
+          loader: "sass-loader",
+          options: {
+            implementation: require("sass")
+          }
         }]
       }
     ]

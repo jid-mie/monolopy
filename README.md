@@ -1,19 +1,53 @@
-# Monopoly
-A web-app version of the board game Monopoly, built using React. This is an ongoing project, although most of the rules of Monopoly are in place and working! Still to be added are:
+# Monopoly Local
+A modernized, local multiplayer Monopoly game. The project is split into a Vite React client and an Express server.
 
-  - Mortgaging
-  - Assorted bug fixes
-  
-Updates to the styling of this project are ongoing. It now resembles the familiar Monopoly board much more closely, with React Bootstrap used to style the buttons and property maintenance placed in a modal. CSS is now handled using Sass. The *master* branch has the latest updates included, anything on the *develop* branch is still in-progress and may not be stable. 
+## Structure
+- `client/` - Vite React front-end
+- `server/` - Express server for production builds
+- `client-legacy/` - Previous React/Sass build (kept for reference)
 
-### Setup
+## Quick Start (dev)
+```sh
+chmod 755 start.sh
+./start.sh
+```
+This installs dependencies and runs both client and server in dev mode.
 
-Give the start script permission to run using 
+## Run Manually
+```sh
+npm install
+npm install --prefix client
+npm install --prefix server
 
-*chmod 755 start.sh*
+npm run dev
+```
+- Client: `http://localhost:5173`
+- Server: `http://localhost:3000`
 
-Execute the script and navigate to the browser window it opens. You may have to refresh the page, depending on how quickly the server starts.
+## Online Multiplayer
+- Chọn chế độ `Online`.
+- Nhập nickname, tạo phòng hoặc nhập mã để tham gia.
+- Host bấm “Bắt đầu ván” để khởi động.
+- Nếu server chạy khác host, đặt `VITE_SERVER_URL` trong môi trường khi chạy client.
 
-### Playing the game
+## Production Build
+```sh
+npm run client:build
+npm run server:start
+```
+Then open `http://localhost:3000`.
 
-Start the game by clicking the button at the top of the screen. Each player takes their turn by clicking the "roll dice" button, which automatically moves them on the board. The player can then take other actions such as buying property and adding houses before ending their turn with the "end turn" button. Effects of interacting with the board, eg. drawing a Chance card, are shown using pop-ups. If a player is in jail they must still roll and end their turn, although there will be no change to their position on the board until their time in jail is up.
+## Deploy (Vercel)
+Lưu ý: Vercel không hỗ trợ Socket.IO server lâu dài, nên chế độ online cần deploy server ở nơi khác (Render/Fly/Railway).
+
+### Deploy client lên Vercel
+1. Tạo project mới trên Vercel từ repo này.
+2. Build command: `npm run client:build`
+3. Output directory: `client/dist`
+4. (Nếu có server riêng) set env `VITE_SERVER_URL` đến URL server.
+
+Repo đã có `vercel.json` để cấu hình sẵn các bước trên.
+
+## Gameplay Notes
+- Local multiplayer only (2-6 players).
+- Full classic rules: properties, rent, houses/hotels, mortgaging, jail, taxes, chance/community chest, auctions, bankruptcy.

@@ -16,6 +16,9 @@ class Dice extends React.Component{
   }
 
   handleClick(){
+    if (this.props.disabled) {
+      return
+    }
     if (!this.props.rolled && !this.props.won){
       this.setState({doubleMessage: ""})
       let diceOneValue = this.getRandomInt(1,6)
@@ -41,7 +44,7 @@ class Dice extends React.Component{
   render(){
     return(
       <div className="dice-div">
-        <Button onClick={this.handleClick}>Roll Dice</Button>
+        <Button onClick={this.handleClick} disabled={this.props.disabled}>Roll Dice</Button>
         <p style={{marginBottom: "5px"}}>You rolled: {this.props.moveValue}</p>
         <p style={{marginTop: "5px", marginBottom: "5px"}}>{this.state.doubleMessage}</p>
       </div>
