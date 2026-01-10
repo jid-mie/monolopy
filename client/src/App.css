@@ -1159,3 +1159,9 @@
   border-bottom-color: transparent;
   color: rgba(255, 255, 255, 0.5);
 }
+
+/* Fix Center Content Interaction */
+.board-center-content {
+  pointer-events: auto !important;
+  z-index: 500 !important;
+}

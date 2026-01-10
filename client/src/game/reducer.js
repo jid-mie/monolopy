@@ -72,23 +72,12 @@ function resolveLanding(state, playerId, diceTotal, rentMultiplier = 1) {
   if (["property", "railroad", "utility"].includes(square.type)) {
     const info = nextState.properties[square.id];
 
-    // Unowned: Always trigger Question for Discount (100% Chance)
+    // Unowned
     if (!info.ownerId && info.ownerId !== 0) {
-      // Determine difficulty based on Price
-      let difficulty = "easy";
-      const price = square.price || 150; // Fallback for utility/railroad if dynamic
-      if (price >= 280) difficulty = "hard";
-      else if (price >= 140) difficulty = "medium";
-
       return {
         ...nextState,
-        phase: "question",
-        pending: {
-          type: "question",
-          context: "purchase",
-          squareId: square.id,
-          question: pickQuestion(difficulty)
-        }
+        phase: "buy_decision",
+        pending: { type: "buy", squareId: square.id, discountPercent: 0 }
       };
     }
 
