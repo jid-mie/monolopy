@@ -55,6 +55,17 @@ const groupLabels = {
   darkblue: "Xanh đậm"
 };
 
+const colorMap = {
+  brown: "#8d5a3b",
+  lightblue: "#8cc7e8",
+  pink: "#d17bb7",
+  orange: "#f39c32",
+  red: "#cf3f3f",
+  yellow: "#f2d94e",
+  green: "#3b8f5a",
+  darkblue: "#2150a0"
+};
+
 const DISCOUNT_BY_DIFFICULTY = { easy: 10, medium: 20, hard: 30 };
 const CHALLENGE_REWARD = {
   easy: { win: 50, lose: 20 },
@@ -518,20 +529,41 @@ export default function App() {
               </ul>
             </div>
 
-            <div className="panel card" style={{ maxHeight: "30%" }}>
-              <h2>Tài chính</h2>
-              <div className="leaderboard" style={{ overflowY: "auto" }}>
+            <div className="panel card" style={{ maxHeight: "30%", overflowY: "auto", display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <h2 style={{ position: 'sticky', top: 0, background: '#1e1b29', zIndex: 10, paddingBottom: 8, margin: 0, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Tài chính</h2>
+              <div className="finance-list" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {state.players && state.players.length > 0 ? (
                   state.players
                     .slice()
                     .sort((a, b) => b.cash - a.cash)
                     .map((p) => (
-                      <div key={p.id} className="leaderboard-row" style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <div className="player-chip" style={{ width: 12, height: 12, backgroundColor: playerColors[p.id % playerColors.length] }} />
-                          <span style={{ fontWeight: p.id === activePlayer?.id ? "bold" : "normal" }}>{p.name}</span>
+                      <div key={p.id} className="player-finance-card" style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: 12, border: p.id === activePlayer?.id ? '1px solid rgba(255,255,255,0.3)' : '1px solid transparent' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <div className="player-chip" style={{ width: 16, height: 16, borderRadius: '50%', backgroundColor: playerColors[p.id % playerColors.length] }} />
+                            <span style={{ fontWeight: 'bold', fontSize: '1rem' }}>{p.name}</span>
+                          </div>
+                          <strong style={{ color: p.cash < 0 ? '#ff4444' : '#4f4', fontSize: '1.2rem' }}>{formatMoney(p.cash)}</strong>
                         </div>
-                        <strong style={{ color: p.cash < 0 ? "#ff4444" : "#44ff44" }}>{formatMoney(p.cash)}</strong>
+
+                        <div className="owned-props" style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                          {p.properties && p.properties.length > 0 ? (
+                            p.properties.map(id => {
+                              const sq = BOARD[id];
+                              const color = sq.type === 'property' ? colorMap[sq.color] : (sq.type === 'railroad' ? '#888' : '#ccc');
+                              return (
+                                <span key={id} title={sq.name} style={{ width: 12, height: 12, borderRadius: 2, display: 'inline-block', backgroundColor: color, border: '1px solid rgba(255,255,255,0.2)' }}></span>
+                              );
+                            })
+                          ) : (
+                            <span style={{ fontSize: 11, color: 'var(--muted)', fontStyle: 'italic' }}>Chưa có tài sản</span>
+                          )}
+                        </div>
+                        {p.properties && p.properties.length > 0 && (
+                          <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {p.properties.map(id => BOARD[id].name).join(', ')}
+                          </div>
+                        )}
                       </div>
                     ))
                 ) : (
