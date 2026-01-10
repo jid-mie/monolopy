@@ -529,47 +529,28 @@ export default function App() {
               </ul>
             </div>
 
-            <div className="panel card" style={{ maxHeight: "30%", overflowY: "auto", display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <h2 style={{ position: 'sticky', top: 0, background: '#1e1b29', zIndex: 10, paddingBottom: 8, margin: 0, borderBottom: '1px solid rgba(255,255,255,0.1)' }}>Tài chính</h2>
-              <div className="finance-list" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {state.players && state.players.length > 0 ? (
-                  state.players
-                    .slice()
-                    .sort((a, b) => b.cash - a.cash)
-                    .map((p) => (
-                      <div key={p.id} className="player-finance-card" style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: 12, border: p.id === activePlayer?.id ? '1px solid rgba(255,255,255,0.3)' : '1px solid transparent' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <div className="player-chip" style={{ width: 16, height: 16, borderRadius: '50%', backgroundColor: playerColors[p.id % playerColors.length] }} />
-                            <span style={{ fontWeight: 'bold', fontSize: '1rem' }}>{p.name}</span>
-                          </div>
-                          <strong style={{ color: p.cash < 0 ? '#ff4444' : '#4f4', fontSize: '1.2rem' }}>{formatMoney(p.cash)}</strong>
+            <div className="panel card">
+              <h2>Người chơi</h2>
+              {activePlayer ? (
+                <div className="property-groups" style={{ maxHeight: "200px", overflowY: "auto" }}>
+                  {Object.keys(ownedGroups).length === 0 && (
+                    <div className="player-meta">Trống.</div>
+                  )}
+                  {Object.entries(ownedGroups).map(([group, squares]) => (
+                    <div key={group} className="group-block" style={{ background: "rgba(255,255,255,0.03)", border: "none" }}>
+                      <div className="group-title" style={{ fontSize: 11, color: "var(--muted)" }}>{groupLabels[group] || group}</div>
+                      {squares.map((square) => (
+                        <div key={square.id} className="property-row" style={{ border: "none", padding: "2px 0" }}>
+                          <div className="property-name" style={{ fontSize: 12 }}>{square.name}</div>
+                          <button className="tiny" onClick={() => setSelectedSquareId(square.id)}>Xem</button>
                         </div>
-
-                        <div className="owned-props" style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                          {p.properties && p.properties.length > 0 ? (
-                            p.properties.map(id => {
-                              const sq = BOARD[id];
-                              const color = sq.type === 'property' ? colorMap[sq.color] : (sq.type === 'railroad' ? '#888' : '#ccc');
-                              return (
-                                <span key={id} title={sq.name} style={{ width: 12, height: 12, borderRadius: 2, display: 'inline-block', backgroundColor: color, border: '1px solid rgba(255,255,255,0.2)' }}></span>
-                              );
-                            })
-                          ) : (
-                            <span style={{ fontSize: 11, color: 'var(--muted)', fontStyle: 'italic' }}>Chưa có tài sản</span>
-                          )}
-                        </div>
-                        {p.properties && p.properties.length > 0 && (
-                          <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {p.properties.map(id => BOARD[id].name).join(', ')}
-                          </div>
-                        )}
-                      </div>
-                    ))
-                ) : (
-                  <div className="player-meta">Chưa có dữ liệu.</div>
-                )}
-              </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="player-meta">...</div>
+              )}
             </div>
           </section>
 
@@ -827,34 +808,85 @@ export default function App() {
               </div>
             )}
 
-            <div className="panel card">
-              <h2>Người chơi</h2>
-              {activePlayer ? (
-                <div className="property-groups" style={{ maxHeight: "200px", overflowY: "auto" }}>
-                  {Object.keys(ownedGroups).length === 0 && (
-                    <div className="player-meta">Trống.</div>
-                  )}
-                  {Object.entries(ownedGroups).map(([group, squares]) => (
-                    <div key={group} className="group-block" style={{ background: "rgba(255,255,255,0.03)", border: "none" }}>
-                      <div className="group-title" style={{ fontSize: 11, color: "var(--muted)" }}>{groupLabels[group] || group}</div>
-                      {squares.map((square) => (
-                        <div key={square.id} className="property-row" style={{ border: "none", padding: "2px 0" }}>
-                          <div className="property-name" style={{ fontSize: 12 }}>{square.name}</div>
-                          <button className="tiny" onClick={() => setSelectedSquareId(square.id)}>Xem</button>
+            <div className="panel card" style={{ maxHeight: "40%", display: 'flex', flexDirection: 'column', overflow: "hidden" }}>
+              <h2 style={{ margin: "0 0 12px 0", flexShrink: 0 }}>Tài chính</h2>
+              <div className="finance-list" style={{ flex: 1, overflowY: "auto", display: 'flex', flexDirection: 'column', gap: 12, paddingRight: 4 }}>
+                {state.players && state.players.length > 0 ? (
+                  state.players
+                    .slice()
+                    .sort((a, b) => b.cash - a.cash)
+                    .map((p) => (
+                      <div key={p.id} className="player-finance-card" style={{
+                        background: 'linear-gradient(145deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)',
+                        backdropFilter: 'blur(12px)',
+                        borderRadius: 12,
+                        padding: 16,
+                        border: p.id === activePlayer?.id ? '1px solid rgba(100, 255, 218, 0.4)' : '1px solid rgba(255,255,255,0.05)',
+                        boxShadow: '0 4px 24px rgba(0,0,0,0.2)'
+                      }}>
+                        {/* Header Info */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <div className="player-avatar" style={{
+                              width: 36, height: 36, borderRadius: 10,
+                              backgroundColor: playerColors[p.id % playerColors.length],
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: '1.4rem', boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                              border: '1px solid rgba(255,255,255,0.2)'
+                            }}>
+                              {playerIcons[p.id % playerIcons.length]}
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: '700', fontSize: '0.95rem', color: '#fff', letterSpacing: '0.02em' }}>{p.name}</div>
+                              {p.id === activePlayer?.id && (
+                                <div style={{ fontSize: '0.65rem', color: '#64ffda', textTransform: 'uppercase', fontWeight: 600, marginTop: 2 }}>
+                                  ● Đang chơi
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', fontWeight: 600, marginBottom: 2 }}>Tài sản</div>
+                            <div style={{ color: p.cash < 0 ? '#ff5252' : '#69f0ae', fontSize: '1.2rem', fontWeight: '800', fontFamily: 'monospace' }}>
+                              {formatMoney(p.cash)}
+                            </div>
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="player-meta">...</div>
-              )}
+
+                        {/* Property Groups */}
+                        {(() => {
+                          const groups = groupProperties(state.properties, p);
+                          const hasProperties = Object.keys(groups).length > 0;
+                          if (!hasProperties) {
+                            return <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', textAlign: 'center', padding: '12px 0', fontStyle: 'italic' }}>Chưa sở hữu bất động sản</div>;
+                          }
+                          return (
+                            <div className="property-list" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                              {Object.entries(groups).map(([key, list]) => {
+                                const color = colorMap[key] || (key === 'railroads' ? '#78909c' : key === 'utilities' ? '#bcaaa4' : '#fff');
+                                return (
+                                  <div key={key} style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.15)', borderRadius: 6, padding: '6px 8px' }}>
+                                    <div style={{ width: 4, height: 28, backgroundColor: color, borderRadius: 4, marginRight: 10, flexShrink: 0, boxShadow: `0 0 6px ${color}` }}></div>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                      <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.9)', lineHeight: '1.3' }}>
+                                        {list.map(s => s.name).join(', ')}
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    ))
+                ) : (
+                  <div className="player-meta">Chưa có dữ liệu.</div>
+                )}
+              </div>
             </div>
 
-            <div className="panel card">
-              <h2>Giao dịch</h2>
-              <button className="ghost" style={{ width: "100%" }} onClick={() => alert("Tính năng giao dịch chi tiết đang phát triển!")}>Mở giao dịch</button>
-            </div>
+
 
 
           </section>
