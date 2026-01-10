@@ -8,6 +8,7 @@ import {
   drawCard,
   getSquare,
   movePlayer,
+  playerOwnsGroup,
   rollDice,
   sendToJail,
   JAIL_BAIL
@@ -74,6 +75,26 @@ function resolveLanding(state, playerId, diceTotal, rentMultiplier = 1) {
 
     // Unowned
     if (!info.ownerId && info.ownerId !== 0) {
+      // 80% Chance for Question
+      if (Math.random() < 0.8) {
+        let difficulty = "easy";
+        const price = square.price || 150;
+        if (price >= 280) difficulty = "hard";
+        else if (price >= 140) difficulty = "medium";
+
+        return {
+          ...nextState,
+          phase: "question",
+          pending: {
+            type: "question",
+            context: "purchase",
+            squareId: square.id,
+            question: pickQuestion(difficulty)
+          }
+        };
+      }
+
+      // 20% Chance: Direct Buy Decision
       return {
         ...nextState,
         phase: "buy_decision",
@@ -81,7 +102,31 @@ function resolveLanding(state, playerId, diceTotal, rentMultiplier = 1) {
       };
     }
 
-    if (info.ownerId === playerId || info.mortgaged) {
+    if (info.ownerId === playerId) {
+      const canUpgrade = canBuildHouse(nextState, playerId, square.id);
+      const player = nextState.players[playerId];
+
+      if (canUpgrade) {
+        if (player.cash >= (square.houseCost || 0)) {
+          return {
+            ...nextState,
+            phase: "upgrade_decision",
+            pending: { type: "upgrade", squareId: square.id }
+          };
+        }
+        return logWithLimit(nextState, `${player.name} dừng tại ${square.name} (Không đủ tiền nâng cấp).`);
+      } else {
+        if (info.houses >= 5) {
+          return logWithLimit(nextState, `${player.name} dừng tại ${square.name} (Đã nâng cấp tối đa).`);
+        }
+        if (info.mortgaged) {
+          return logWithLimit(nextState, `${player.name} dừng tại ${square.name} (Đất đang cầm cố).`);
+        }
+        return logWithLimit(nextState, `${player.name} dừng tại ${square.name}.`);
+      }
+    }
+
+    if (info.mortgaged) {
       return logWithLimit(nextState, `${nextState.players[playerId].name} dừng tại ${square.name}.`);
     }
 
@@ -181,7 +226,7 @@ export function gameReducer(state, action) {
     nextState = movePlayer(nextState, activeId, roll.total);
     nextState = resolveLanding(nextState, activeId, roll.total);
 
-    if (["buy_decision", "question", "auction"].includes(nextState.phase)) {
+    if (["buy_decision", "question", "auction", "upgrade_decision"].includes(nextState.phase)) {
       return nextState;
     }
 
@@ -248,7 +293,10 @@ export function gameReducer(state, action) {
       nextState = logWithLimit(nextState, `${player.name} đổ ra đôi và được ra tù.`);
       nextState = movePlayer(nextState, activeId, roll.total);
       nextState = resolveLanding(nextState, activeId, roll.total);
-      return { ...nextState, phase: nextState.phase === "buy_decision" ? "buy_decision" : "post_roll", doublesCount: 0 };
+      if (["buy_decision", "question", "auction", "upgrade_decision"].includes(nextState.phase)) {
+        return { ...nextState, doublesCount: 0 };
+      }
+      return { ...nextState, phase: "post_roll", doublesCount: 0 };
     }
 
     const turns = player.jailTurns + 1;
@@ -262,7 +310,10 @@ export function gameReducer(state, action) {
       nextState = logWithLimit(nextState, `${player.name} trả $${JAIL_BAIL} sau 3 lượt trong tù.`);
       nextState = movePlayer(nextState, activeId, roll.total);
       nextState = resolveLanding(nextState, activeId, roll.total);
-      return { ...nextState, phase: nextState.phase === "buy_decision" ? "buy_decision" : "post_roll", doublesCount: 0 };
+      if (["buy_decision", "question", "auction", "upgrade_decision"].includes(nextState.phase)) {
+        return { ...nextState, doublesCount: 0 };
+      }
+      return { ...nextState, phase: "post_roll", doublesCount: 0 };
     }
 
     nextState = updatePlayer(nextState, activeId, (p) => ({
@@ -414,6 +465,37 @@ export function gameReducer(state, action) {
 
     const nextActive = getNextActiveIndex({ ...state, activePlayerIndex: auction.activeBidderId });
     return { ...state, pending: { ...auction, passedIds, activeBidderId: nextActive } };
+  }
+
+  if (action.type === "UPGRADE_CONFIRM") {
+    if (state.phase !== "upgrade_decision" || state.pending?.type !== "upgrade") return state;
+    const { squareId } = state.pending;
+    const square = getSquare(squareId);
+    const activeId = state.activePlayerIndex;
+
+    if (!canBuildHouse(state, activeId, squareId) || state.players[activeId].cash < square.houseCost) {
+      return { ...state, phase: "post_roll", pending: null };
+    }
+
+    let nextState = updatePlayer(state, activeId, (p) => ({ ...p, cash: p.cash - square.houseCost }));
+    nextState = {
+      ...nextState,
+      properties: {
+        ...nextState.properties,
+        [squareId]: {
+          ...nextState.properties[squareId],
+          houses: nextState.properties[squareId].houses + 1
+        }
+      },
+      phase: "post_roll",
+      pending: null
+    };
+    return logWithLimit(nextState, `${state.players[activeId].name} nâng cấp ${square.name} (-$${square.houseCost}).`);
+  }
+
+  if (action.type === "UPGRADE_DECLINE") {
+    if (state.phase !== "upgrade_decision") return state;
+    return { ...state, phase: "post_roll", pending: null };
   }
 
   if (action.type === "END_TURN") {

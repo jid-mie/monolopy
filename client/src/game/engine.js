@@ -88,13 +88,9 @@ export function canBuildHouse(state, ownerId, squareId) {
   if (!square || square.type !== "property") return false;
   const info = state.properties[squareId];
   if (!info || info.ownerId !== ownerId || info.mortgaged) return false;
-  if (!playerOwnsGroup(state, ownerId, square.color)) return false;
+  // Removed group ownership check and even build rule
   if (info.houses >= 5) return false;
-
-  const group = GROUPS[square.color];
-  const houseCounts = group.map((id) => state.properties[id].houses);
-  const min = Math.min(...houseCounts);
-  return info.houses === min;
+  return true;
 }
 
 export function canSellHouse(state, ownerId, squareId) {
@@ -147,10 +143,10 @@ export function movePlayer(state, playerId, steps) {
   const updatedPlayers = state.players.map((p) =>
     p.id === playerId
       ? {
-          ...p,
-          position: next,
-          cash: passedGo ? p.cash + GO_BONUS : p.cash
-        }
+        ...p,
+        position: next,
+        cash: passedGo ? p.cash + GO_BONUS : p.cash
+      }
       : p
   );
 

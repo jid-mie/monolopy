@@ -468,10 +468,7 @@ export default function App() {
                 ? "Chế độ Trực tuyến"
                 : "Chế độ Tại máy (Offline)"}
             </div>
-            {/* DEBUG OVERLAY */}
-            <div style={{ position: 'fixed', top: 0, left: 0, background: 'red', color: 'white', padding: 5, zIndex: 9999, fontSize: 10 }}>
-              Phase: {state?.phase} | PType: {state?.pending?.type} | Ctx: {state?.pending?.context} | Q: {state?.pending?.question ? 'YES' : 'NO'} | RoomStarted: {roomInfo?.started ? 'YES' : 'NO'}
-            </div>
+
             {mode === "online" && roomInfo?.roomCode && (
               <div className="player-meta">Mã phòng: <strong style={{ color: "var(--accent)" }}>{roomInfo.roomCode}</strong></div>
             )}
@@ -617,6 +614,17 @@ export default function App() {
                     </div>
                   )}
 
+                  {state.phase === "upgrade_decision" && state.pending?.squareId !== undefined && (
+                    <div className="decision-box" style={{ background: "rgba(30, 27, 41, 0.95)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(8px)", color: "#fff" }}>
+                      <div className="decision-title">Nâng cấp {BOARD[state.pending.squareId].name}?</div>
+                      <div className="player-meta">Giá: <strong>{formatMoney(BOARD[state.pending.squareId].houseCost)}</strong></div>
+                      <div className="decision-actions">
+                        <button className="primary" onClick={() => dispatchAction({ type: "UPGRADE_CONFIRM" })}>Nâng cấp</button>
+                        <button className="ghost" onClick={() => dispatchAction({ type: "UPGRADE_DECLINE" })}>Bỏ qua</button>
+                      </div>
+                    </div>
+                  )}
+
                   {state.phase === "auction" && state.pending && (
                     <div className="decision-box" style={{ background: "rgba(30, 27, 41, 0.95)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(8px)", color: "#fff", minWidth: 280 }}>
                       <div className="decision-title">Đấu giá: {BOARD[state.pending.squareId].name}</div>
@@ -697,14 +705,30 @@ export default function App() {
                           <strong>{formatMoney(selectedSquare.price)}</strong>
                         </div>
                       )}
-                      {squareInfo?.rent !== undefined && (
+
+                      {/* Rent Schedule for Properties */}
+                      {selectedSquare.type === "property" && Array.isArray(selectedSquare.rent) && (
+                        <div className="rent-schedule" style={{ marginTop: 12, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 8 }}>
+                          <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 4 }}>Bảng giá thuê:</div>
+                          {selectedSquare.rent.map((r, idx) => (
+                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: idx === (squareInfo?.houses || 0) && squareInfo?.owner ? '#4f4' : 'inherit', fontWeight: idx === (squareInfo?.houses || 0) && squareInfo?.owner ? 'bold' : 'normal' }}>
+                              <span>{idx === 0 ? "Đất trống" : idx === 5 ? "Khách sạn" : `${idx} Nhà`}</span>
+                              <span>{formatMoney(r)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Fallback for non-properties */}
+                      {selectedSquare.type !== "property" && squareInfo?.rent !== undefined && (
                         <div className="info-row">
                           <span>{selectedSquare.type === "utility" ? "Hệ số:" : "Tiền thuê:"}</span>
                           <strong>{selectedSquare.type === "utility" ? `${squareInfo.rent}x` : formatMoney(squareInfo.rent)}</strong>
                         </div>
                       )}
+
                       {selectedSquare.houseCost && (
-                        <div className="info-row">
+                        <div className="info-row" style={{ marginTop: 8 }}>
                           <span>Giá nhà:</span>
                           <strong>{formatMoney(selectedSquare.houseCost)}</strong>
                         </div>
@@ -713,7 +737,7 @@ export default function App() {
                         <span>Chủ sở hữu:</span>
                         <strong>{squareInfo?.owner || "Chưa có chủ"}</strong>
                       </div>
-                      {squareInfo?.houses > 0 && (
+                      {squareInfo?.houses > 0 && selectedSquare.type !== "property" && (
                         <div className="info-row">
                           <span>Đã xây:</span>
                           <strong>{squareInfo.houses === 5 ? "Khách sạn" : `${squareInfo.houses} Nhà`}</strong>

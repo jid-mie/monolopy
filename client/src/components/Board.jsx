@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 const colorMap = {
   brown: "#8d5a3b",
@@ -128,8 +128,11 @@ const playerIcons = [
   "🦆"  // Duck
 ];
 
-function renderTokens(players, squareId, colors, activePlayerId) {
-  const tokens = players.filter((player) => player.position === squareId && !player.bankrupt);
+function renderTokens(players, squareId, colors, activePlayerId, visualPositions) {
+  const tokens = players.filter((player) => {
+    const pos = visualPositions[player.id] !== undefined ? visualPositions[player.id] : player.position;
+    return pos === squareId && !player.bankrupt;
+  });
   return (
     <div className="token-row">
       {tokens.map((player) => {
@@ -138,7 +141,7 @@ function renderTokens(players, squareId, colors, activePlayerId) {
           <span
             key={player.id}
             className={`token ${isActive ? "active-token" : ""}`}
-            style={{ backgroundColor: colors[player.id % colors.length] }}
+            style={{ backgroundColor: colors[player.id % colors.length], transition: "all 0.4s" }}
             title={player.name}
           >
             {playerIcons[player.id % playerIcons.length]}
@@ -150,6 +153,50 @@ function renderTokens(players, squareId, colors, activePlayerId) {
 }
 
 export default function Board({ board, properties, players, activePlayerId, colors, onSquareClick, selectedSquareId, squareInfo, children }) {
+  const [visualPositions, setVisualPositions] = useState({});
+
+  // Initialize visual positions
+  useEffect(() => {
+    setVisualPositions((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      players.forEach((p) => {
+        if (next[p.id] === undefined) {
+          next[p.id] = p.position;
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [players]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisualPositions((prev) => {
+        let changed = false;
+        const next = { ...prev };
+        players.forEach((p) => {
+          const current = next[p.id] !== undefined ? next[p.id] : p.position;
+          const target = p.position;
+
+          if (current !== target) {
+            const dist = (target - current + 40) % 40;
+            // Walk if distance <= 12, else teleport
+            if (dist > 0 && dist <= 12) {
+              next[p.id] = (current + 1) % 40;
+              changed = true;
+            } else {
+              next[p.id] = target;
+              changed = true;
+            }
+          }
+        });
+        return changed ? next : prev;
+      });
+    }, 300); // Speed of movement
+    return () => clearInterval(interval);
+  }, [players]);
+
   return (
     <div className="board-shell">
       <div className="board-grid">
@@ -217,7 +264,7 @@ export default function Board({ board, properties, players, activePlayerId, colo
                 {ownerId !== null && ownerId !== undefined && (
                   <div className="owner-chip" style={{ backgroundColor: colors[ownerId % colors.length] }} />
                 )}
-                {renderTokens(players, squareId, colors, activePlayerId)}
+                {renderTokens(players, squareId, colors, activePlayerId, visualPositions)}
                 {isSelected && squareInfo && (
                   <div className={`square-tooltip ${row > 5 ? "pos-top" : "pos-bottom"}`}>
                     <div className="square-tooltip-title">{squareInfo.name}</div>
