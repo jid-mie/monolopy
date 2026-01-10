@@ -1,7 +1,7 @@
 import { BOARD, GROUPS, RAILROADS, UTILITIES } from "./board.js";
 import { CHANCE_CARDS, CHEST_CARDS } from "./cards.js";
 
-export const START_CASH = 1500;
+export const START_CASH = 2000;
 export const GO_BONUS = 200;
 export const JAIL_BAIL = 50;
 
@@ -59,6 +59,7 @@ export function createInitialState(playerNames, aiFlags = []) {
     doublesCount: 0,
     pending: null,
     lastCreditorId: null,
+    usedQuestionIds: [],
     log: ["Bắt đầu ván chơi. Hãy đổ xúc xắc để bắt đầu."]
   };
 }

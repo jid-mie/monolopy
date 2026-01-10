@@ -25,12 +25,35 @@ const CHALLENGE_REWARD = {
 };
 const QUESTION_CHANCE = 1.0;
 
-function pickQuestion(targetDifficulty) {
-  const candidates = QUESTIONS.filter((q) => q.difficulty === targetDifficulty);
-  if (candidates.length === 0) {
-    return QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
+function pickQuestion(state, targetDifficulty) {
+  const usedIds = state.usedQuestionIds || [];
+
+  // Get all unused questions
+  const unusedQuestions = QUESTIONS.filter((q, index) => !usedIds.includes(index));
+
+  // No questions left
+  if (unusedQuestions.length === 0) {
+    return null;
   }
-  return candidates[Math.floor(Math.random() * candidates.length)];
+
+  // Try to find unused questions with target difficulty
+  const candidates = unusedQuestions.filter((q) => q.difficulty === targetDifficulty);
+
+  if (candidates.length > 0) {
+    const picked = candidates[Math.floor(Math.random() * candidates.length)];
+    const questionIndex = QUESTIONS.indexOf(picked);
+    return { question: picked, questionIndex };
+  }
+
+  // Fallback to any unused question
+  const picked = unusedQuestions[Math.floor(Math.random() * unusedQuestions.length)];
+  const questionIndex = QUESTIONS.indexOf(picked);
+  return { question: picked, questionIndex };
+}
+
+function isQuestionsExhausted(state) {
+  const usedIds = state.usedQuestionIds || [];
+  return usedIds.length >= QUESTIONS.length;
 }
 
 function getNextActiveIndex(state) {
@@ -75,12 +98,30 @@ function resolveLanding(state, playerId, diceTotal, rentMultiplier = 1) {
 
     // Unowned
     if (!info.ownerId && info.ownerId !== 0) {
+      // Check if questions are exhausted - end game
+      if (isQuestionsExhausted(nextState)) {
+        return {
+          ...nextState,
+          phase: "game_over",
+          gameOverReason: "questions_exhausted"
+        };
+      }
+
       // 80% Chance for Question
       if (Math.random() < 0.8) {
         let difficulty = "easy";
         const price = square.price || 150;
         if (price >= 280) difficulty = "hard";
         else if (price >= 140) difficulty = "medium";
+
+        const picked = pickQuestion(nextState, difficulty);
+        if (!picked) {
+          return {
+            ...nextState,
+            phase: "game_over",
+            gameOverReason: "questions_exhausted"
+          };
+        }
 
         return {
           ...nextState,
@@ -89,7 +130,8 @@ function resolveLanding(state, playerId, diceTotal, rentMultiplier = 1) {
             type: "question",
             context: "purchase",
             squareId: square.id,
-            question: pickQuestion(difficulty)
+            question: picked.question,
+            questionIndex: picked.questionIndex
           }
         };
       }
@@ -171,13 +213,32 @@ function resolveLanding(state, playerId, diceTotal, rentMultiplier = 1) {
   }
 
   if (square.type === "challenge") {
+    // Check if questions are exhausted - end game
+    if (isQuestionsExhausted(nextState)) {
+      return {
+        ...nextState,
+        phase: "game_over",
+        gameOverReason: "questions_exhausted"
+      };
+    }
+
+    const picked = pickQuestion(nextState, "medium");
+    if (!picked) {
+      return {
+        ...nextState,
+        phase: "game_over",
+        gameOverReason: "questions_exhausted"
+      };
+    }
+
     return {
       ...nextState,
       phase: "question",
       pending: {
         type: "question",
         context: "challenge",
-        question: pickQuestion("medium") // Default challenge difficulty
+        question: picked.question,
+        questionIndex: picked.questionIndex
       }
     };
   }
@@ -328,16 +389,28 @@ export function gameReducer(state, action) {
   if (action.type === "QUESTION_ANSWER") {
     if (state.phase !== "question" || state.pending?.type !== "question") return state;
     const question = state.pending.question;
+    const questionIndex = state.pending.questionIndex;
     const correct = action.payload.choiceIndex === question.answerIndex;
     const difficulty = question.difficulty;
+
+    // Mark question as used
+    const usedQuestionIds = [...(state.usedQuestionIds || [])];
+    if (questionIndex !== undefined && !usedQuestionIds.includes(questionIndex)) {
+      usedQuestionIds.push(questionIndex);
+    }
+
+    // Calculate remaining questions
+    const totalQuestions = QUESTIONS.length;
+    const remainingQuestions = totalQuestions - usedQuestionIds.length;
 
     if (state.pending.context === "purchase") {
       const discount = correct ? 20 : 0;
       const message = correct
-        ? `Trả lời đúng. Giảm giá 20% khi mua tài sản.`
-        : "Trả lời sai. Không được giảm giá.";
+        ? `Trả lời đúng. Giảm giá 20% khi mua tài sản. (Còn ${remainingQuestions} câu hỏi)`
+        : `Trả lời sai. Không được giảm giá. (Còn ${remainingQuestions} câu hỏi)`;
       return logWithLimit({
         ...state,
+        usedQuestionIds,
         phase: "buy_decision",
         pending: { type: "buy", squareId: state.pending.squareId, discountPercent: discount }
       }, message);
@@ -345,7 +418,7 @@ export function gameReducer(state, action) {
 
     if (state.pending.context === "tax") {
       if (correct) {
-        return logWithLimit({ ...state, phase: "post_roll", pending: null }, `Trả lời đúng. Được miễn tiền phạt $${state.pending.amount}.`);
+        return logWithLimit({ ...state, usedQuestionIds, phase: "post_roll", pending: null }, `Trả lời đúng. Được miễn tiền phạt $${state.pending.amount}. (Còn ${remainingQuestions} câu hỏi)`);
       }
       // Incorrect: Pay the tax
       const amount = state.pending.amount;
@@ -353,21 +426,21 @@ export function gameReducer(state, action) {
         ...player,
         cash: player.cash - amount
       }));
-      return logWithLimit({ ...nextState, phase: "post_roll", pending: null }, `Trả lời sai. Bị phạt $${amount} tiền thuế.`);
+      return logWithLimit({ ...nextState, usedQuestionIds, phase: "post_roll", pending: null }, `Trả lời sai. Bị phạt $${amount} tiền thuế. (Còn ${remainingQuestions} câu hỏi)`);
     }
 
     if (state.pending.context === "challenge") {
       const reward = CHALLENGE_REWARD[difficulty] || CHALLENGE_REWARD.easy;
       const delta = correct ? reward.win : -reward.lose;
-      const label = correct ? `Trả lời đúng, nhận $${reward.win}.` : `Trả lời sai, mất $${reward.lose}.`;
+      const label = correct ? `Trả lời đúng, nhận $${reward.win}. (Còn ${remainingQuestions} câu hỏi)` : `Trả lời sai, mất $${reward.lose}. (Còn ${remainingQuestions} câu hỏi)`;
       const nextState = updatePlayer(state, activeId, (player) => ({
         ...player,
         cash: player.cash + delta
       }));
-      return logWithLimit({ ...nextState, phase: "post_roll", pending: null }, label);
+      return logWithLimit({ ...nextState, usedQuestionIds, phase: "post_roll", pending: null }, label);
     }
 
-    return { ...state, phase: "post_roll", pending: null };
+    return { ...state, usedQuestionIds, phase: "post_roll", pending: null };
   }
 
   if (action.type === "BUY") {

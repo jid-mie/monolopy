@@ -4,6 +4,7 @@ import Board from "./components/Board";
 import { gameReducer } from "./game/reducer";
 import { BOARD, LIQUIDITY } from "./game/board";
 import { canBuildHouse, canSellHouse } from "./game/engine";
+import { QUESTIONS } from "./game/questions";
 import "./App.css";
 
 const playerColors = [
@@ -924,6 +925,158 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {state.phase === "game_over" && (() => {
+        // Calculate total assets for each player
+        const playerAssets = state.players.map((player) => {
+          let totalAssets = player.cash;
+
+          // Add property values
+          if (player.properties) {
+            player.properties.forEach((propId) => {
+              const square = BOARD[propId];
+              const propInfo = state.properties[propId];
+              if (square) {
+                // Add property purchase price
+                totalAssets += square.price || 0;
+                // Add house/hotel values (50% of cost for selling)
+                if (propInfo?.houses && square.houseCost) {
+                  totalAssets += propInfo.houses * Math.floor(square.houseCost / 2);
+                }
+              }
+            });
+          }
+
+          return {
+            ...player,
+            totalAssets
+          };
+        });
+
+        // Sort by total assets (descending)
+        const sortedPlayers = [...playerAssets]
+          .filter(p => !p.bankrupt)
+          .sort((a, b) => b.totalAssets - a.totalAssets);
+
+        const winner = sortedPlayers[0];
+        const isQuestionsExhausted = state.gameOverReason === "questions_exhausted";
+        const usedQuestions = state.usedQuestionIds?.length || 0;
+        const totalQuestions = QUESTIONS.length;
+
+        return (
+          <div className="modal-backdrop">
+            <div className="modal-card" style={{ textAlign: 'center', maxWidth: '700px' }}>
+              <div style={{ fontSize: '4rem', marginBottom: '16px' }}>🏆</div>
+              <h2 style={{ fontSize: '2.5rem', marginBottom: '8px', color: '#ffd700' }}>Trò chơi kết thúc!</h2>
+
+              {isQuestionsExhausted && (
+                <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '24px' }}>
+                  Đã sử dụng hết {usedQuestions}/{totalQuestions} câu hỏi!
+                </p>
+              )}
+
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(255,215,0,0.2) 0%, rgba(255,215,0,0.05) 100%)',
+                borderRadius: '16px',
+                padding: '24px',
+                marginBottom: '24px',
+                border: '2px solid rgba(255,215,0,0.3)'
+              }}>
+                <div style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.6)', marginBottom: '8px' }}>🎉 NGƯỜI CHIẾN THẮNG 🎉</div>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '16px',
+                  marginBottom: '12px'
+                }}>
+                  <div style={{
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    backgroundColor: playerColors[winner?.id % playerColors.length],
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '2rem',
+                    boxShadow: '0 0 20px rgba(255,215,0,0.5)'
+                  }}>
+                    {playerIcons[winner?.id % playerIcons.length]}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '2rem', fontWeight: '800', color: '#fff' }}>{winner?.name}</div>
+                    <div style={{ fontSize: '1.5rem', color: '#69f0ae', fontWeight: '700' }}>
+                      {formatMoney(winner?.totalAssets)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <h3 style={{ marginBottom: '16px', color: 'rgba(255,255,255,0.8)' }}>Bảng xếp hạng</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+                {sortedPlayers.map((player, index) => (
+                  <div
+                    key={player.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '16px',
+                      padding: '12px 16px',
+                      background: index === 0 ? 'rgba(255,215,0,0.15)' : 'rgba(255,255,255,0.05)',
+                      borderRadius: '12px',
+                      border: index === 0 ? '1px solid rgba(255,215,0,0.3)' : '1px solid rgba(255,255,255,0.1)'
+                    }}
+                  >
+                    <div style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: '800',
+                      fontSize: '1rem',
+                      background: index === 0 ? '#ffd700' : index === 1 ? '#c0c0c0' : index === 2 ? '#cd7f32' : 'rgba(255,255,255,0.1)',
+                      color: index < 3 ? '#000' : '#fff'
+                    }}>
+                      {index + 1}
+                    </div>
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      backgroundColor: playerColors[player.id % playerColors.length],
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.2rem'
+                    }}>
+                      {playerIcons[player.id % playerIcons.length]}
+                    </div>
+                    <div style={{ flex: 1, textAlign: 'left' }}>
+                      <div style={{ fontWeight: '600' }}>{player.name}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>
+                        Tiền: {formatMoney(player.cash)} | BĐS: {player.properties?.length || 0}
+                      </div>
+                    </div>
+                    <div style={{
+                      fontSize: '1.1rem',
+                      fontWeight: '700',
+                      color: player.totalAssets >= 0 ? '#69f0ae' : '#ff5252'
+                    }}>
+                      {formatMoney(player.totalAssets)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button className="primary" style={{ width: '100%', padding: '16px', fontSize: '1.1rem' }} onClick={resetGame}>
+                Chơi lại
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       {mode === "local" && state.phase === "setup" && (
         <div className="modal-backdrop">
