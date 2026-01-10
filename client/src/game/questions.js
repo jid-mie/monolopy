@@ -504,23 +504,5 @@ export const QUESTIONS = [
     options: ["Đúng", "Sai"],
     answerIndex: 1,
     difficulty: "medium"
-  },
-  {
-    text: "Davidoff cho rằng nhà quy hoạch phải từ bỏ phân tích lý tính để làm chính trị.",
-    options: ["Đúng", "Sai"],
-    answerIndex: 1,
-    difficulty: "medium"
-  },
-  {
-    text: "Ý tưởng “nhiều phương án” nhằm thay thế tranh luận bằng cạnh tranh kỹ thuật.",
-    options: ["Đúng", "Sai"],
-    answerIndex: 1,
-    difficulty: "medium"
-  },
-  {
-    text: "Phê phán quy hoạch biện hộ 'ngây thơ về chính trị' là do hỗ trợ kỹ thuật không đổi được quyền lực.",
-    options: ["Đúng", "Sai"],
-    answerIndex: 0,
-    difficulty: "hard"
   }
 ];

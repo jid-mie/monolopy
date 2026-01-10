@@ -164,7 +164,9 @@ export default function App() {
   const needsFunds = activePlayer && activePlayer.cash < 0;
   const [isRolling, setIsRolling] = useState(false);
   const [displayRoll, setDisplayRoll] = useState(null);
+  const [questionTimer, setQuestionTimer] = useState(15);
   const rollIntervalRef = useRef(null);
+  const questionTimerRef = useRef(null);
 
   useEffect(() => {
     if (!state.roll) return;
@@ -196,6 +198,45 @@ export default function App() {
       clearTimeout(timer);
     };
   }, [state.roll?.die1, state.roll?.die2]);
+
+  // Question timer effect - 15 seconds countdown
+  useEffect(() => {
+    // Clear any existing timer
+    if (questionTimerRef.current) {
+      clearInterval(questionTimerRef.current);
+      questionTimerRef.current = null;
+    }
+
+    // Only start timer when in question phase
+    if (state.phase !== "question" || !state.pending?.type === "question") {
+      setQuestionTimer(15);
+      return;
+    }
+
+    // Reset timer to 15 seconds when question appears
+    setQuestionTimer(15);
+
+    // Start countdown
+    questionTimerRef.current = setInterval(() => {
+      setQuestionTimer((prev) => {
+        if (prev <= 1) {
+          // Time's up! Auto-submit wrong answer (answer index -1 will never match)
+          clearInterval(questionTimerRef.current);
+          questionTimerRef.current = null;
+          dispatchAction({ type: "QUESTION_ANSWER", payload: { choiceIndex: -1 } });
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (questionTimerRef.current) {
+        clearInterval(questionTimerRef.current);
+        questionTimerRef.current = null;
+      }
+    };
+  }, [state.phase, state.pending?.questionIndex]);
 
   useEffect(() => {
     if (mode !== "online") {
@@ -897,7 +938,27 @@ export default function App() {
       {state.phase === "question" && state.pending?.type === "question" && (
         <div className="modal-backdrop">
           <div className="modal-card">
-            <h2>Câu hỏi</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h2 style={{ margin: 0 }}>Câu hỏi</h2>
+              <div style={{
+                width: '60px',
+                height: '60px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.8rem',
+                fontWeight: '800',
+                background: questionTimer <= 5 ? 'linear-gradient(135deg, #ff4444 0%, #cc0000 100%)' :
+                  questionTimer <= 10 ? 'linear-gradient(135deg, #ffaa00 0%, #ff6600 100%)' :
+                    'linear-gradient(135deg, #44ff44 0%, #00cc00 100%)',
+                color: '#fff',
+                boxShadow: questionTimer <= 5 ? '0 0 20px rgba(255, 68, 68, 0.6)' : '0 4px 12px rgba(0,0,0,0.3)',
+                animation: questionTimer <= 5 ? 'pulse 0.5s infinite' : 'none'
+              }}>
+                {questionTimer}
+              </div>
+            </div>
             <div className="player-meta">Độ khó: {state.pending.question?.difficulty === "hard" ? "Khó" : state.pending.question?.difficulty === "medium" ? "Trung bình" : "Dễ"}</div>
             {state.pending.context === "purchase" && (
               <div className="player-meta">
@@ -922,6 +983,11 @@ export default function App() {
                 </button>
               ))}
             </div>
+            {questionTimer <= 5 && (
+              <div style={{ textAlign: 'center', marginTop: '12px', color: '#ff4444', fontWeight: '600', animation: 'pulse 0.5s infinite' }}>
+                ⚠️ Sắp hết giờ!
+              </div>
+            )}
           </div>
         </div>
       )}
