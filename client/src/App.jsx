@@ -617,6 +617,30 @@ export default function App() {
                     </div>
                   )}
 
+                  {state.phase === "auction" && state.pending && (
+                    <div className="decision-box" style={{ background: "rgba(30, 27, 41, 0.95)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(8px)", color: "#fff", minWidth: 280 }}>
+                      <div className="decision-title">Đấu giá: {BOARD[state.pending.squareId].name}</div>
+                      <div className="player-meta">Giá cao nhất: <strong style={{ color: "#4f4" }}>{formatMoney(state.pending.highestBid)}</strong></div>
+                      <div className="player-meta">Người giữ giá: <strong>{state.pending.highestBidderId !== null ? state.players[state.pending.highestBidderId].name : "Chưa có"}</strong></div>
+                      <div className="player-meta" style={{ marginTop: 8, color: "var(--accent)" }}>Đến lượt: <strong>{state.players[state.pending.activeBidderId].name}</strong></div>
+
+                      <div className="decision-actions" style={{ marginTop: 12, flexDirection: "column" }}>
+                        <div style={{ display: 'flex', gap: 8, width: '100%', justifyContent: 'center' }}>
+                          <input
+                            className="input"
+                            type="number"
+                            placeholder="Giá"
+                            style={{ width: 100, textAlign: "center" }}
+                            value={auctionBid}
+                            onChange={(e) => setAuctionBid(Number(e.target.value))}
+                          />
+                          <button className="primary" onClick={() => dispatchAction({ type: "AUCTION_BID", payload: { bid: auctionBid } })}>Ra giá</button>
+                        </div>
+                        <button className="ghost" style={{ width: '100%' }} onClick={() => dispatchAction({ type: "AUCTION_PASS" })}>Bỏ lượt đấu giá</button>
+                      </div>
+                    </div>
+                  )}
+
                   {state.phase === "jail_choice" && activePlayer && (
                     <div className="decision-box" style={{ background: "rgba(30, 27, 41, 0.95)", color: "#fff", border: "1px solid rgba(255,255,255,0.1)" }}>
                       <div className="decision-title">Trong tù</div>
