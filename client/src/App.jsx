@@ -210,6 +210,7 @@ export default function App() {
     });
 
     socket.on("room_update", (payload) => {
+      console.log("Room Update:", payload);
       setRoomInfo(payload);
     });
 
@@ -469,7 +470,7 @@ export default function App() {
             </div>
             {/* DEBUG OVERLAY */}
             <div style={{ position: 'fixed', top: 0, left: 0, background: 'red', color: 'white', padding: 5, zIndex: 9999, fontSize: 10 }}>
-              Phase: {state?.phase} | PType: {state?.pending?.type} | Ctx: {state?.pending?.context} | Q: {state?.pending?.question ? 'YES' : 'NO'}
+              Phase: {state?.phase} | PType: {state?.pending?.type} | Ctx: {state?.pending?.context} | Q: {state?.pending?.question ? 'YES' : 'NO'} | RoomStarted: {roomInfo?.started ? 'YES' : 'NO'}
             </div>
             {mode === "online" && roomInfo?.roomCode && (
               <div className="player-meta">Mã phòng: <strong style={{ color: "var(--accent)" }}>{roomInfo.roomCode}</strong></div>
