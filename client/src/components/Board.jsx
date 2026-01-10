@@ -117,23 +117,39 @@ function getSquareId(row, col) {
   return null;
 }
 
-function renderTokens(players, squareId, colors) {
+const playerIcons = [
+  "🎩", // Top hat
+  "🚗", // Car
+  "🚢", // Ship
+  "👟", // Shoe
+  "🐕", // Dog
+  "🐈", // Cat
+  "🦖", // Dino
+  "🦆"  // Duck
+];
+
+function renderTokens(players, squareId, colors, activePlayerId) {
   const tokens = players.filter((player) => player.position === squareId && !player.bankrupt);
   return (
     <div className="token-row">
-      {tokens.map((player) => (
-        <span
-          key={player.id}
-          className="token"
-          style={{ backgroundColor: colors[player.id % colors.length] }}
-          title={player.name}
-        />
-      ))}
+      {tokens.map((player) => {
+        const isActive = player.id === activePlayerId;
+        return (
+          <span
+            key={player.id}
+            className={`token ${isActive ? "active-token" : ""}`}
+            style={{ backgroundColor: colors[player.id % colors.length] }}
+            title={player.name}
+          >
+            {playerIcons[player.id % playerIcons.length]}
+          </span>
+        );
+      })}
     </div>
   );
 }
 
-export default function Board({ board, properties, players, activePlayerId, colors, onSquareClick, selectedSquareId, squareInfo }) {
+export default function Board({ board, properties, players, activePlayerId, colors, onSquareClick, selectedSquareId, squareInfo, children }) {
   return (
     <div className="board-shell">
       <div className="board-grid">
@@ -149,16 +165,28 @@ export default function Board({ board, properties, players, activePlayerId, colo
             const info = properties[squareId];
             const ownerId = info?.ownerId;
             const isActive = players[activePlayerId]?.position === squareId;
-            const isSelected = selectedSquareId === squareId && squareInfo?.id === squareId;
+            const isSelected = selectedSquareId === squareId;
+            const showTooltip = isSelected && squareInfo?.id === squareId;
             const color = square.color ? colorMap[square.color] : null;
             const isCorner = [0, 10, 20, 30].includes(squareId);
             const typeLabel = typeLabels[square.type];
             const hasIcon = Boolean(typeLabel);
 
+            let side = "center";
+            if (row === 0 && col > 0 && col < 10) side = "top";
+            else if (row === 10 && col > 0 && col < 10) side = "bottom";
+            else if (col === 0 && row > 0 && row < 10) side = "left";
+            else if (col === 10 && row > 0 && row < 10) side = "right";
+            else if (row === 0 && col === 0) side = "corner-tl";
+            else if (row === 0 && col === 10) side = "corner-tr";
+            else if (row === 10 && col === 0) side = "corner-bl";
+            else if (row === 10 && col === 10) side = "corner-br";
+
             return (
               <div
                 key={`${row}-${col}`}
-                className={`board-cell board-square type-${square.type} ${isCorner ? "corner" : ""} ${isActive ? "active" : ""}`}
+                className={`board-cell board-square type-${square.type} side-${side} ${isCorner ? "corner" : ""} ${isActive ? "active" : ""} ${isSelected ? "selected" : ""}`}
+                style={{ "--cell-color": color }}
                 onClick={() => onSquareClick?.(squareId)}
                 role="button"
                 tabIndex={0}
@@ -168,7 +196,7 @@ export default function Board({ board, properties, players, activePlayerId, colo
                   }
                 }}
               >
-                {color && <div className="color-bar" style={{ backgroundColor: color }} />}
+                {color && <div className="color-strip" />}
                 {typeLabel && <div className="type-badge">{typeLabel}</div>}
                 {hasIcon && (
                   <div className="square-icon">
@@ -189,9 +217,9 @@ export default function Board({ board, properties, players, activePlayerId, colo
                 {ownerId !== null && ownerId !== undefined && (
                   <div className="owner-chip" style={{ backgroundColor: colors[ownerId % colors.length] }} />
                 )}
-                {renderTokens(players, squareId, colors)}
+                {renderTokens(players, squareId, colors, activePlayerId)}
                 {isSelected && squareInfo && (
-                  <div className="square-tooltip">
+                  <div className={`square-tooltip ${row > 5 ? "pos-top" : "pos-bottom"}`}>
                     <div className="square-tooltip-title">{squareInfo.name}</div>
                     <div className="square-tooltip-meta">Loại: {squareInfo.typeLabel || squareInfo.type}</div>
                     {squareInfo.price && <div className="square-tooltip-meta">Giá: ${squareInfo.price}</div>}
@@ -207,8 +235,12 @@ export default function Board({ board, properties, players, activePlayerId, colo
           })
         )}
         <div className="board-center-content">
-          <div className="board-title">Cờ Tỷ Phú</div>
-          <div className="board-subtitle">Luật cổ điển, chơi tại máy.</div>
+          {children || (
+            <>
+              <div className="board-title">Cờ Tỷ Phú</div>
+              <div className="board-subtitle">Luật cổ điển, chơi tại máy.</div>
+            </>
+          )}
         </div>
       </div>
     </div>

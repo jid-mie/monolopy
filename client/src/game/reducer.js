@@ -22,10 +22,14 @@ const CHALLENGE_REWARD = {
   medium: { win: 100, lose: 40 },
   hard: { win: 150, lose: 60 }
 };
-const QUESTION_CHANCE = 0.6;
+const QUESTION_CHANCE = 1.0;
 
-function pickQuestion() {
-  return QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
+function pickQuestion(targetDifficulty) {
+  const candidates = QUESTIONS.filter((q) => q.difficulty === targetDifficulty);
+  if (candidates.length === 0) {
+    return QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
+  }
+  return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
 function getNextActiveIndex(state) {
@@ -64,25 +68,27 @@ function resolveLanding(state, playerId, diceTotal, rentMultiplier = 1) {
 
   if (!square) return nextState;
 
+  // Property / Railroad / Utility
   if (["property", "railroad", "utility"].includes(square.type)) {
     const info = nextState.properties[square.id];
+
+    // Unowned: Always trigger Question for Discount (100% Chance)
     if (!info.ownerId && info.ownerId !== 0) {
-      if (Math.random() < QUESTION_CHANCE) {
-        return {
-          ...nextState,
-          phase: "question",
-          pending: {
-            type: "question",
-            context: "purchase",
-            squareId: square.id,
-            question: pickQuestion()
-          }
-        };
-      }
+      // Determine difficulty based on Price
+      let difficulty = "easy";
+      const price = square.price || 150; // Fallback for utility/railroad if dynamic
+      if (price >= 280) difficulty = "hard";
+      else if (price >= 140) difficulty = "medium";
+
       return {
         ...nextState,
-        phase: "buy_decision",
-        pending: { type: "buy", squareId: square.id, discountPercent: 0 }
+        phase: "question",
+        pending: {
+          type: "question",
+          context: "purchase",
+          squareId: square.id,
+          question: pickQuestion(difficulty)
+        }
       };
     }
 
@@ -106,6 +112,7 @@ function resolveLanding(state, playerId, diceTotal, rentMultiplier = 1) {
     return logWithLimit(nextState, `${nextState.players[playerId].name} trả $${rent} tiền thuê cho ${nextState.players[info.ownerId].name}.`);
   }
 
+  // Tax Square - NO Question, direct payment
   if (square.type === "tax") {
     nextState = updatePlayer(nextState, playerId, (player) => ({
       ...player,
@@ -136,7 +143,7 @@ function resolveLanding(state, playerId, diceTotal, rentMultiplier = 1) {
       pending: {
         type: "question",
         context: "challenge",
-        question: pickQuestion()
+        question: pickQuestion("medium") // Default challenge difficulty
       }
     };
   }
@@ -185,7 +192,7 @@ export function gameReducer(state, action) {
     nextState = movePlayer(nextState, activeId, roll.total);
     nextState = resolveLanding(nextState, activeId, roll.total);
 
-    if (nextState.phase === "buy_decision") {
+    if (["buy_decision", "question", "auction"].includes(nextState.phase)) {
       return nextState;
     }
 
@@ -285,15 +292,28 @@ export function gameReducer(state, action) {
     const difficulty = question.difficulty;
 
     if (state.pending.context === "purchase") {
-      const discount = correct ? DISCOUNT_BY_DIFFICULTY[difficulty] || 0 : 0;
+      const discount = correct ? 20 : 0;
       const message = correct
-        ? `Trả lời đúng. Giảm giá ${discount}% khi mua tài sản.`
+        ? `Trả lời đúng. Giảm giá 20% khi mua tài sản.`
         : "Trả lời sai. Không được giảm giá.";
       return logWithLimit({
         ...state,
         phase: "buy_decision",
         pending: { type: "buy", squareId: state.pending.squareId, discountPercent: discount }
       }, message);
+    }
+
+    if (state.pending.context === "tax") {
+      if (correct) {
+        return logWithLimit({ ...state, phase: "post_roll", pending: null }, `Trả lời đúng. Được miễn tiền phạt $${state.pending.amount}.`);
+      }
+      // Incorrect: Pay the tax
+      const amount = state.pending.amount;
+      const nextState = updatePlayer(state, activeId, (player) => ({
+        ...player,
+        cash: player.cash - amount
+      }));
+      return logWithLimit({ ...nextState, phase: "post_roll", pending: null }, `Trả lời sai. Bị phạt $${amount} tiền thuế.`);
     }
 
     if (state.pending.context === "challenge") {
@@ -608,9 +628,9 @@ export function gameReducer(state, action) {
       }),
       properties: propertyId
         ? {
-            ...state.properties,
-            [propertyId]: { ...state.properties[propertyId], ownerId: toId }
-          }
+          ...state.properties,
+          [propertyId]: { ...state.properties[propertyId], ownerId: toId }
+        }
         : state.properties
     };
     return logWithLimit(nextState, `Giao dịch đã thực hiện giữa ${from.name} và ${to.name}.`);

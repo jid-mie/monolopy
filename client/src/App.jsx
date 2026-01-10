@@ -15,6 +15,17 @@ const playerColors = [
   "#1f3a3a"
 ];
 
+const playerIcons = [
+  "🎩", // Top hat
+  "🚗", // Car
+  "🚢", // Ship
+  "👟", // Shoe
+  "🐕", // Dog
+  "🐈", // Cat
+  "🦖", // Dino
+  "🦆"  // Duck
+];
+
 const initialState = { phase: "setup", players: [], log: [] };
 
 const typeLabels = {
@@ -107,7 +118,8 @@ function computeLiquidityScores(players, properties) {
 
 export default function App() {
   const [localState, dispatchLocal] = useReducer(gameReducer, initialState);
-  const [mode, setMode] = useState("online");
+  const [mode, setMode] = useState(null); // 'local', 'online', or null (menu)
+  const [onlineTab, setOnlineTab] = useState("create"); // 'create' or 'join'
   const [onlineState, setOnlineState] = useState(null);
   const [roomInfo, setRoomInfo] = useState(null);
   const [roomError, setRoomError] = useState("");
@@ -125,8 +137,8 @@ export default function App() {
 
   const state = mode === "online"
     ? (roomInfo?.started
-        ? (onlineState || { phase: "loading", players: roomInfo?.players || [], log: [] })
-        : { phase: roomInfo ? "lobby" : "setup", players: roomInfo?.players || [], log: [] })
+      ? (onlineState || { phase: "loading", players: roomInfo?.players || [], log: [] })
+      : { phase: roomInfo ? "lobby" : "setup", players: roomInfo?.players || [], log: [] })
     : localState;
 
   const activePlayer = state?.players?.[state?.activePlayerIndex];
@@ -301,7 +313,7 @@ export default function App() {
 
   const createRoom = () => {
     if (!nickname.trim()) {
-      alert("Vui lòng nhập nickname.");
+      alert("Vui lòng nhập tên hiển thị.");
       return;
     }
     socketRef.current?.emit("create_room", { name: nickname.trim() });
@@ -415,332 +427,358 @@ export default function App() {
     mortgaged: selectedInfo ? selectedInfo.mortgaged : false
   } : null;
 
+  if (mode === null) {
+    return (
+      <div className="app-shell welcome-screen">
+        <div className="welcome-card card">
+          <h1 className="title" style={{ fontSize: "3rem", marginBottom: "0.5rem" }}>Cờ Tỷ Phú</h1>
+          <p className="subtitle" style={{ marginBottom: "2rem" }}>Chọn chế độ chơi để bắt đầu</p>
+
+          <div className="mode-selection">
+            <button className="primary big-btn" onClick={() => setMode("local")}>
+              <div style={{ fontSize: "1.5rem" }}>🛡️</div>
+              <div>
+                <strong>Chơi Tại Máy</strong>
+                <div style={{ fontSize: "0.8rem", opacity: 0.7 }}>Chơi offline với bạn bè hoặc máy</div>
+              </div>
+            </button>
+
+            <button className="primary big-btn" onClick={() => setMode("online")}>
+              <div style={{ fontSize: "1.5rem" }}>🌍</div>
+              <div>
+                <strong>Chơi Online</strong>
+                <div style={{ fontSize: "0.8rem", opacity: 0.7 }}>Tạo phòng và mời bạn bè từ xa</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="app-shell">
-      <header className="top-bar">
-        <div>
-          <div className="title">Cờ Tỷ Phú</div>
-          <div className="subtitle">
-            {mode === "online"
-              ? "Chơi trực tuyến, tạo phòng và mời bạn bè."
-              : "Luật cổ điển, bàn cờ mới, chơi tại máy."}
-          </div>
-          {mode === "online" && roomInfo?.roomCode && (
-            <div className="player-meta">Mã phòng: {roomInfo.roomCode}</div>
-          )}
-        </div>
-        <div className="header-actions">
-          <div className="mode-toggle">
-            <button className={mode === "local" ? "primary" : "ghost"} onClick={() => setMode("local")}>Tại máy</button>
-            <button className={mode === "online" ? "primary" : "ghost"} onClick={() => setMode("online")}>Trực tuyến</button>
-          </div>
-          {mode === "local" && <button className="ghost" onClick={resetGame}>Ván mới</button>}
-          {mode === "online" && roomInfo && <button className="ghost" onClick={leaveRoom}>Rời phòng</button>}
-        </div>
-      </header>
-
-      <main className="main-grid">
-        <section className="board-panel">
-          <Board
-            board={BOARD}
-            properties={state.properties || {}}
-            players={state.players || []}
-            activePlayerId={state.activePlayerIndex}
-            colors={playerColors}
-            onSquareClick={setSelectedSquareId}
-            selectedSquareId={selectedSquareId}
-            squareInfo={squareInfo}
-          />
-        </section>
-
-        <section className="side-panel">
-          <div className="panel card">
-            <h2>Điều khiển lượt</h2>
-            {activePlayer ? (
-              <div className="player-row">
-                <div className="player-chip" style={{ backgroundColor: playerColors[activePlayer.id % playerColors.length] }} />
-                <div>
-                  <div className="player-name">{activePlayer.name}</div>
-                  <div className="player-meta">Tiền: {formatMoney(activePlayer.cash)}</div>
-                  {activePlayer.inJail && (
-                    <div className="player-meta">Trong tù (lượt {activePlayer.jailTurns + 1} / 3)</div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="player-meta">Bắt đầu ván mới để chơi.</div>
-            )}
-
-            <div className="button-row">
-              {state.phase === "await_roll" && (
-                <button className="primary" onClick={() => dispatchAction({ type: "ROLL" })}>Đổ xúc xắc</button>
-              )}
-
-              {state.phase === "post_roll" && (
-                <button className="primary" onClick={() => dispatchAction({ type: "END_TURN" })}>Kết thúc lượt</button>
-              )}
-
-              {canRollAgain && (
-                <button className="primary" onClick={() => dispatchAction({ type: "ROLL" })}>Đổ lại</button>
-              )}
+    <>
+      <div className="app-shell">
+        <header className="top-bar">
+          <div>
+            <div className="title">Cờ Tỷ Phú</div>
+            <div className="subtitle">
+              {mode === "online"
+                ? "Chế độ Trực tuyến"
+                : "Chế độ Tại máy (Offline)"}
             </div>
-
-            {state.roll && displayRoll && (
-              <div className="dice-readout">
-                <div className={`dice-pair ${isRolling ? "rolling" : ""}`}>
-                  <DiceFace value={displayRoll.die1} />
-                  <DiceFace value={displayRoll.die2} />
-                </div>
-                {isRolling ? (
-                  <div className="player-meta">Đang lắc...</div>
-                ) : (
-                  <>
-                    <div>Xúc xắc: {state.roll.die1} + {state.roll.die2} = {state.roll.total}</div>
-                    {state.roll.isDouble && <div className="badge">Đôi!</div>}
-                  </>
-                )}
-              </div>
-            )}
-
-            {state.phase === "buy_decision" && state.pending?.squareId !== undefined && (
-              <div className="decision-box">
-                <div className="decision-title">Mua {BOARD[state.pending.squareId].name}?</div>
-                {state.pending.discountPercent > 0 && (
-                  <div className="decision-meta">Giảm giá: {state.pending.discountPercent}%</div>
-                )}
-                <div className="decision-actions">
-                  <button className="primary" onClick={() => dispatchAction({ type: "BUY" })}>Mua</button>
-                  <button className="ghost" onClick={() => dispatchAction({ type: "DECLINE_BUY" })}>Đấu giá</button>
-                </div>
-              </div>
-            )}
-
-            {state.phase === "auction" && state.pending?.type === "auction" && (
-              <div className="decision-box">
-                <div className="decision-title">Đấu giá: {BOARD[state.pending.squareId].name}</div>
-                <div className="decision-meta">Giá cao nhất: ${state.pending.highestBid}</div>
-                <div className="decision-meta">Người ra giá: {state.players[state.pending.activeBidderId]?.name}</div>
-                <input
-                  type="number"
-                  min={state.pending.highestBid + 1}
-                  className="input"
-                  value={auctionBid}
-                  onChange={(event) => setAuctionBid(event.target.value)}
-                />
-                <div className="decision-actions">
-                  <button className="primary" onClick={() => dispatchAction({ type: "AUCTION_BID", payload: { bid: Number(auctionBid) } })}>Ra giá</button>
-                  <button className="ghost" onClick={() => dispatchAction({ type: "AUCTION_PASS" })}>Bỏ qua</button>
-                </div>
-              </div>
-            )}
-
-            {state.phase === "jail_choice" && activePlayer && (
-              <div className="decision-box">
-                <div className="decision-title">Trong tù</div>
-                <div className="decision-actions">
-                  <button className="primary" onClick={() => dispatchAction({ type: "JAIL_ROLL" })}>Đổ để ra đôi</button>
-                  <button className="ghost" onClick={() => dispatchAction({ type: "JAIL_PAY" })}>Nộp $50 bảo lãnh</button>
-                  <button className="ghost" onClick={() => dispatchAction({ type: "JAIL_USE_CARD" })}>Dùng thẻ ra tù</button>
-                </div>
-              </div>
-            )}
-
-            {needsFunds && (
-              <div className="warning-box">
-                <div>Bạn đang âm tiền. Thế chấp/bán nhà hoặc tuyên bố phá sản.</div>
-                <button className="ghost" onClick={() => dispatchAction({ type: "DECLARE_BANKRUPTCY" })}>Tuyên bố phá sản</button>
-              </div>
-            )}
-          </div>
-
-          <div className="panel card">
-            <h2>Người chơi</h2>
-            <div className="player-list">
-              {state.players?.map((player) => (
-                <div key={player.id} className={`player-row ${player.bankrupt ? "bankrupt" : ""}`}>
-                  <div className="player-chip" style={{ backgroundColor: playerColors[player.id % playerColors.length] }} />
-                  <div>
-                    <div className="player-name">{player.name}</div>
-                    <div className="player-meta">
-                      {formatMoney(player.cash)}
-                      {player.isAI && <span className="ai-tag">Máy</span>}
-                    </div>
-                  </div>
-                </div>
-              ))}
+            {/* DEBUG OVERLAY */}
+            <div style={{ position: 'fixed', top: 0, left: 0, background: 'red', color: 'white', padding: 5, zIndex: 9999, fontSize: 10 }}>
+              Phase: {state?.phase} | PType: {state?.pending?.type} | Ctx: {state?.pending?.context} | Q: {state?.pending?.question ? 'YES' : 'NO'}
             </div>
-          </div>
-
-          <div className="panel card">
-            <h2>Quản lý tài sản</h2>
-            {activePlayer ? (
-              <div className="property-groups">
-                {Object.keys(ownedGroups).length === 0 && (
-                  <div className="player-meta">Chưa có tài sản.</div>
-                )}
-                {Object.entries(ownedGroups).map(([group, squares]) => (
-                  <div key={group} className="group-block">
-                    <div className="group-title">{groupLabels[group] || group.toUpperCase()}</div>
-                    {squares.map((square) => {
-                      const info = state.properties[square.id];
-                      const isBuildable = square.type === "property";
-                      const canBuild = isBuildable && canBuildHouse(state, activePlayer.id, square.id);
-                      const canSell = isBuildable && canSellHouse(state, activePlayer.id, square.id);
-                      return (
-                        <div key={square.id} className="property-row">
-                          <div>
-                            <div className="property-name">{square.name}</div>
-                            <div className="property-meta">
-                              Nhà: {info.houses} {info.mortgaged ? "• Đang thế chấp" : ""}
-                            </div>
-                          </div>
-                          <div className="property-actions">
-                            <button className="tiny" disabled={!canBuild} onClick={() => dispatchAction({ type: "BUILD", payload: { squareId: square.id } })}>Xây</button>
-                            <button className="tiny" disabled={!canSell} onClick={() => dispatchAction({ type: "SELL", payload: { squareId: square.id } })}>Bán</button>
-                            <button
-                              className="tiny"
-                              disabled={info.houses > 0 || info.mortgaged}
-                              onClick={() => dispatchAction({ type: "MORTGAGE", payload: { squareId: square.id } })}
-                            >Thế chấp</button>
-                            <button
-                              className="tiny"
-                              disabled={!info.mortgaged}
-                              onClick={() => dispatchAction({ type: "UNMORTGAGE", payload: { squareId: square.id } })}
-                            >Giải chấp</button>
-                            <button
-                              className="tiny"
-                              disabled={info.houses > 0 || info.mortgaged}
-                              onClick={() => dispatchAction({ type: "SELL_PROPERTY", payload: { squareId: square.id } })}
-                            >Bán tài sản</button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="player-meta">Bắt đầu ván để quản lý tài sản.</div>
+            {mode === "online" && roomInfo?.roomCode && (
+              <div className="player-meta">Mã phòng: <strong style={{ color: "var(--accent)" }}>{roomInfo.roomCode}</strong></div>
             )}
           </div>
-
-          <div className="panel card">
-            <h2>Mua lại tài sản</h2>
-            {state.players?.[0]?.properties ? (
-              <>
-                <select className="input" value={buyBackId} onChange={(event) => setBuyBackId(event.target.value)}>
-                  <option value="">Chọn tài sản</option>
-                  {unownedOptions.map((id) => (
-                    <option key={id} value={id}>{BOARD[id].name} (${BOARD[id].price})</option>
-                  ))}
-                </select>
-                <button className="primary" onClick={handleBuyBack}>Mua lại</button>
-              </>
-            ) : (
-              <div className="player-meta">Bắt đầu ván để mua lại tài sản.</div>
-            )}
+          <div className="header-actions">
+            <button className="ghost" onClick={() => {
+              setMode(null);
+              setRoomInfo(null);
+              setOnlineState(null);
+              if (socketRef.current) socketRef.current.disconnect();
+              socketRef.current = null;
+            }}>Về Menu</button>
           </div>
+        </header>
 
-          <div className="panel card">
-            <h2>Thông tin ô</h2>
-            {(() => {
-              if (!selectedSquare) {
-                return <div className="player-meta">Chọn một ô.</div>;
-              }
-              return (
-                <div className="square-info">
-                  <div className="square-info-title">{squareInfo.name}</div>
-                  <div className="square-info-meta">Loại: {squareInfo.typeLabel}</div>
-                  {squareInfo.price && <div className="square-info-meta">Giá: ${squareInfo.price}</div>}
-                  {squareInfo.mortgage && <div className="square-info-meta">Thế chấp: ${squareInfo.mortgage}</div>}
-                  {squareInfo.tax && <div className="square-info-meta">Thuế: ${squareInfo.tax}</div>}
-                  {squareInfo.rent && (
-                    <div className="square-info-meta">Tiền thuê: {squareInfo.rent.join(", ")}</div>
-                  )}
-                  {squareInfo.houseCost && (
-                    <div className="square-info-meta">Giá nhà: ${squareInfo.houseCost}</div>
-                  )}
-                  {squareInfo.owner && <div className="square-info-meta">Chủ sở hữu: {squareInfo.owner}</div>}
-                  {squareInfo.houses > 0 && (
-                    <div className="square-info-meta">Nhà: {squareInfo.houses === 5 ? "Khách sạn" : squareInfo.houses}</div>
-                  )}
-                  {squareInfo.mortgaged && <div className="square-info-meta">Trạng thái: Đang thế chấp</div>}
-                </div>
-              );
-            })()}
-          </div>
-
-          <div className="panel card">
-            <h2>Giao dịch</h2>
-            {state.players?.[0]?.properties ? (
-              <>
-                <div className="trade-grid">
-                  <label>
-                    Từ
-                    <select className="input" value={trade.fromId} onChange={(event) => setTrade({ ...trade, fromId: event.target.value })}>
-                      {state.players?.map((player) => (
-                        <option key={player.id} value={player.id}>{player.name}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    Đến
-                    <select className="input" value={trade.toId} onChange={(event) => setTrade({ ...trade, toId: event.target.value })}>
-                      {state.players?.map((player) => (
-                        <option key={player.id} value={player.id}>{player.name}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    Tiền
-                    <input className="input" type="number" value={trade.cash} onChange={(event) => setTrade({ ...trade, cash: event.target.value })} />
-                  </label>
-                  <label>
-                    Tài sản
-                    <select className="input" value={trade.propertyId} onChange={(event) => setTrade({ ...trade, propertyId: event.target.value })}>
-                      <option value="">Không</option>
-                      {tradeOptions.map((prop) => (
-                        <option key={prop.id} value={prop.id}>{prop.name}</option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-                <button className="primary" onClick={handleTrade}>Thực hiện giao dịch</button>
-              </>
-            ) : (
-              <div className="player-meta">Bắt đầu ván để giao dịch.</div>
-            )}
-          </div>
-
-          <div className="panel card log-panel">
-            <h2>Nhật ký</h2>
-            {state.log?.length ? (
-              <ul>
-                {state.log.map((entry, idx) => (
-                  <li key={idx}>{entry}</li>
-                ))}
-              </ul>
-            ) : (
-              <div className="player-meta">Chưa có sự kiện.</div>
-            )}
-          </div>
-
-          {state.phase === "game_over" && state.players?.length > 0 && state.properties && (
+        <main className="main-grid">
+          {/* Left Column: Social & Chat */}
+          <section className="left-panel">
             <div className="panel card">
-              <h2>Kết quả cuối game</h2>
-              <div className="player-meta">Tính theo chỉ số thanh khoản nhóm.</div>
-              <div className="score-list">
-                {computeLiquidityScores(state.players, state.properties).map((result, idx) => (
-                  <div key={result.id} className="score-row">
-                    <span>{idx + 1}. {result.name}</span>
-                    <span>{formatMoney(result.total)}</span>
+              <h2>Thông tin</h2>
+              {mode === "online" && roomInfo?.roomCode ? (
+                <div className="player-meta">
+                  Mã phòng: <strong style={{ color: "var(--accent)", fontSize: "1.2em" }}>{roomInfo.roomCode}</strong>
+                  <div style={{ marginTop: 8, fontSize: 11, color: "var(--muted)" }}>
+                    Gửi mã này cho bạn bè.
                   </div>
-                ))}
+                </div>
+              ) : (
+                <div className="player-meta">
+                  {mode === "local" ? "Đang chơi Offline." : "Chưa vào phòng."}
+                </div>
+              )}
+            </div>
+
+            <div className="panel card log-panel" style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+              <h2>Nhật ký</h2>
+              <ul style={{ flex: 1, overflowY: "auto" }}>
+                {state.log?.length ? (
+                  state.log.map((entry, idx) => (
+                    <li key={idx} style={{ padding: "4px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                      {entry}
+                    </li>
+                  ))
+                ) : (
+                  <div className="player-meta">Chưa có sự kiện.</div>
+                )}
+              </ul>
+            </div>
+
+            <div className="panel card" style={{ maxHeight: "30%" }}>
+              <h2>Tài chính</h2>
+              <div className="leaderboard" style={{ overflowY: "auto" }}>
+                {state.players && state.players.length > 0 ? (
+                  state.players
+                    .slice()
+                    .sort((a, b) => b.cash - a.cash)
+                    .map((p) => (
+                      <div key={p.id} className="leaderboard-row" style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <div className="player-chip" style={{ width: 12, height: 12, backgroundColor: playerColors[p.id % playerColors.length] }} />
+                          <span style={{ fontWeight: p.id === activePlayer?.id ? "bold" : "normal" }}>{p.name}</span>
+                        </div>
+                        <strong style={{ color: p.cash < 0 ? "#ff4444" : "#44ff44" }}>{formatMoney(p.cash)}</strong>
+                      </div>
+                    ))
+                ) : (
+                  <div className="player-meta">Chưa có dữ liệu.</div>
+                )}
               </div>
             </div>
-          )}
-        </section>
-      </main>
+          </section>
+
+          {/* Center Column: Board */}
+          <section className="board-panel">
+            <Board
+              board={BOARD}
+              properties={state.properties || {}}
+              players={state.players || []}
+              activePlayerId={state.activePlayerIndex}
+              colors={playerColors}
+              onSquareClick={setSelectedSquareId}
+              selectedSquareId={selectedSquareId}
+              squareInfo={squareInfo}
+            >
+              {activePlayer ? (
+                <div className="center-controls">
+                  <style>{`
+                  .center-controls {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 16px;
+                    width: 100%;
+                    height: 100%;
+                    pointer-events: auto;
+                    z-index: 100;
+                  }
+                  .center-msg {
+                    font-size: 14px;
+                    color: rgba(255,255,255,0.7);
+                    text-align: center;
+                    margin-bottom: 8px;
+                  }
+                  .center-btn {
+                    padding: 12px 24px;
+                    font-size: 16px;
+                    min-width: 160px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+                  }
+                `}</style>
+
+                  <div className="center-msg">Lượt của <strong style={{ color: "#fff" }}>{activePlayer.name}</strong></div>
+
+                  {state.roll && displayRoll && (
+                    <div className="dice-readout" style={{ justifyContent: "center", marginBottom: 16 }}>
+                      <div className={`dice-pair ${isRolling ? "rolling" : ""}`}>
+                        <DiceFace value={displayRoll.die1} />
+                        <DiceFace value={displayRoll.die2} />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="button-row" style={{ width: "auto" }}>
+                    {state.phase === "await_roll" && (
+                      <button className="primary center-btn" onClick={() => dispatchAction({ type: "ROLL" })}>Đổ xúc xắc</button>
+                    )}
+                    {state.phase === "post_roll" && (
+                      <button className="primary center-btn" onClick={() => dispatchAction({ type: "END_TURN" })}>Kết thúc lượt</button>
+                    )}
+                    {canRollAgain && (
+                      <button className="primary center-btn" onClick={() => dispatchAction({ type: "ROLL" })}>Đổ lại</button>
+                    )}
+                  </div>
+
+                  {state.phase === "buy_decision" && state.pending?.squareId !== undefined && (
+                    <div className="decision-box" style={{ background: "rgba(30, 27, 41, 0.95)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(8px)", color: "#fff" }}>
+                      <div className="decision-title">Mua {BOARD[state.pending.squareId].name}?</div>
+                      <div className="decision-actions">
+                        <button className="primary" onClick={() => dispatchAction({ type: "BUY" })}>Mua</button>
+                        <button className="ghost" onClick={() => dispatchAction({ type: "DECLINE_BUY" })}>Bỏ qua</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {state.phase === "jail_choice" && activePlayer && (
+                    <div className="decision-box" style={{ background: "rgba(30, 27, 41, 0.95)", color: "#fff", border: "1px solid rgba(255,255,255,0.1)" }}>
+                      <div className="decision-title">Trong tù</div>
+                      <div className="decision-actions" style={{ flexDirection: "column" }}>
+                        <button className="primary" onClick={() => dispatchAction({ type: "JAIL_ROLL" })}>Đổ đôi</button>
+                        <button className="ghost" onClick={() => dispatchAction({ type: "JAIL_PAY" })}>Nộp $50</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {activePlayer && activePlayer.inJail && state.phase === "await_roll" && (
+                    <div className="player-meta">Đang ở tù.</div>
+                  )}
+                </div>
+              ) : (
+                <div className="center-controls">
+                  <style>{`
+                  .center-controls {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    width: 100%; height: 100%;
+                  }
+                `}</style>
+                  <div className="board-title">Cờ Tỷ Phú</div>
+                  <div className="player-meta">
+                    {mode === "online" && !roomInfo?.started ? "Đang chờ..." : "Chờ bắt đầu..."}
+                  </div>
+                </div>
+              )}
+            </Board>
+          </section>
+
+          {/* Right Column: Game Controls & Info */}
+          <section className="right-panel">
+            {selectedSquare && (
+              <div className="panel card">
+                <h2 style={{ borderBottom: `2px solid ${selectedSquare.color || "rgba(255,255,255,0.1)"}` }}>
+                  {selectedSquare.name}
+                </h2>
+                <div className="square-info-content">
+                  <div className="info-row">
+                    <span>Loại:</span>
+                    <strong>{typeLabels[selectedSquare.type] || selectedSquare.type}</strong>
+                  </div>
+
+                  {/* Properties, Railroads, Utilities */}
+                  {["property", "railroad", "utility"].includes(selectedSquare.type) && (
+                    <>
+                      {selectedSquare.price && (
+                        <div className="info-row">
+                          <span>Giá mua:</span>
+                          <strong>{formatMoney(selectedSquare.price)}</strong>
+                        </div>
+                      )}
+                      {squareInfo?.rent !== undefined && (
+                        <div className="info-row">
+                          <span>{selectedSquare.type === "utility" ? "Hệ số:" : "Tiền thuê:"}</span>
+                          <strong>{selectedSquare.type === "utility" ? `${squareInfo.rent}x` : formatMoney(squareInfo.rent)}</strong>
+                        </div>
+                      )}
+                      {selectedSquare.houseCost && (
+                        <div className="info-row">
+                          <span>Giá nhà:</span>
+                          <strong>{formatMoney(selectedSquare.houseCost)}</strong>
+                        </div>
+                      )}
+                      <div className="info-row">
+                        <span>Chủ sở hữu:</span>
+                        <strong>{squareInfo?.owner || "Chưa có chủ"}</strong>
+                      </div>
+                      {squareInfo?.houses > 0 && (
+                        <div className="info-row">
+                          <span>Đã xây:</span>
+                          <strong>{squareInfo.houses === 5 ? "Khách sạn" : `${squareInfo.houses} Nhà`}</strong>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {/* Tax */}
+                  {selectedSquare.type === "tax" && (
+                    <div className="info-row">
+                      <span>Số tiền nộp:</span>
+                      <strong>{formatMoney(selectedSquare.amount || selectedSquare.price)}</strong>
+                    </div>
+                  )}
+
+                  {/* Chance / Chest / Challenge */}
+                  {["chance", "chest", "challenge"].includes(selectedSquare.type) && (
+                    <div className="info-row" style={{ display: "block", paddingTop: 8 }}>
+                      <span style={{ display: "block", marginBottom: 4 }}>Mô tả:</span>
+                      <strong style={{ fontWeight: "normal", color: "#ddd" }}>
+                        {selectedSquare.type === "chance" && "Rút một thẻ Cơ Hội ngẫu nhiên."}
+                        {selectedSquare.type === "chest" && "Rút một thẻ Khí Vận ngẫu nhiên."}
+                        {selectedSquare.type === "challenge" && "Tham gia thử thách minigame để nhận thưởng hoặc chịu phạt."}
+                      </strong>
+                    </div>
+                  )}
+
+                  {/* Special Squares */}
+                  {selectedSquare.type === "go" && (
+                    <div className="info-row">
+                      <span>Thưởng:</span>
+                      <strong>Nhận $200 khi đi qua.</strong>
+                    </div>
+                  )}
+                  {selectedSquare.type === "jail" && (
+                    <div className="info-row" style={{ display: "block" }}>
+                      <span style={{ display: "block", marginBottom: 4 }}>Quy tắc:</span>
+                      <strong style={{ fontWeight: "normal", color: "#ddd" }}>Thăm tù (nếu đi vào) hoặc Ở tù (nếu bị bắt). Cần đổ đôi hoặc trả tiền để ra.</strong>
+                    </div>
+                  )}
+                  {selectedSquare.type === "free_parking" && (
+                    <div className="info-row">
+                      <span>Tác dụng:</span>
+                      <strong>Bãi đậu xe miễn phí. Không có gì xảy ra.</strong>
+                    </div>
+                  )}
+                  {selectedSquare.type === "go_to_jail" && (
+                    <div className="info-row">
+                      <span>Hành động:</span>
+                      <strong>Đi tù ngay lập tức!</strong>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="panel card">
+              <h2>Người chơi</h2>
+              {activePlayer ? (
+                <div className="property-groups" style={{ maxHeight: "200px", overflowY: "auto" }}>
+                  {Object.keys(ownedGroups).length === 0 && (
+                    <div className="player-meta">Trống.</div>
+                  )}
+                  {Object.entries(ownedGroups).map(([group, squares]) => (
+                    <div key={group} className="group-block" style={{ background: "rgba(255,255,255,0.03)", border: "none" }}>
+                      <div className="group-title" style={{ fontSize: 11, color: "var(--muted)" }}>{groupLabels[group] || group}</div>
+                      {squares.map((square) => (
+                        <div key={square.id} className="property-row" style={{ border: "none", padding: "2px 0" }}>
+                          <div className="property-name" style={{ fontSize: 12 }}>{square.name}</div>
+                          <button className="tiny" onClick={() => setSelectedSquareId(square.id)}>Xem</button>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="player-meta">...</div>
+              )}
+            </div>
+
+            <div className="panel card">
+              <h2>Giao dịch</h2>
+              <button className="ghost" style={{ width: "100%" }} onClick={() => alert("Tính năng giao dịch chi tiết đang phát triển!")}>Mở giao dịch</button>
+            </div>
+
+
+          </section>
+        </main>
+      </div>
 
       {state.phase === "question" && state.pending?.type === "question" && (
         <div className="modal-backdrop">
@@ -749,7 +787,12 @@ export default function App() {
             <div className="player-meta">Độ khó: {state.pending.question?.difficulty === "hard" ? "Khó" : state.pending.question?.difficulty === "medium" ? "Trung bình" : "Dễ"}</div>
             {state.pending.context === "purchase" && (
               <div className="player-meta">
-                Đúng sẽ giảm {DISCOUNT_BY_DIFFICULTY[state.pending.question?.difficulty] || 0}% khi mua tài sản.
+                Trả lời đúng được giảm giá <strong style={{ color: "#4f4" }}>20%</strong> khi mua.
+              </div>
+            )}
+            {state.pending.context === "tax" && (
+              <div className="player-meta">
+                Trả lời đúng được miễn <strong style={{ color: "#4f4" }}>{formatMoney(state.pending.amount)}</strong> tiền phạt.
               </div>
             )}
             {state.pending.context === "challenge" && (
@@ -810,6 +853,7 @@ export default function App() {
               </select>
             </label>
             <div className="decision-actions">
+              <button className="ghost" onClick={() => setMode(null)}>Quay lại</button>
               <button className="primary" onClick={startGame}>Bắt đầu</button>
             </div>
           </div>
@@ -822,30 +866,53 @@ export default function App() {
             <h2>Chơi trực tuyến</h2>
             {!roomInfo ? (
               <>
-                <p>Tạo phòng hoặc nhập mã phòng để tham gia.</p>
-                <div className="setup-grid">
-                  <input
-                    className="input"
-                    placeholder="Biệt danh"
-                    value={nickname}
-                    onChange={(event) => setNickname(event.target.value)}
-                  />
-                  <input
-                    className="input"
-                    placeholder="Mã phòng"
-                    value={roomCode}
-                    onChange={(event) => setRoomCode(event.target.value)}
-                  />
+                <div className="tabs" style={{ display: "flex", gap: 16, marginBottom: 16, borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+                  <button
+                    className={onlineTab === "create" ? "primary" : "ghost"}
+                    style={{ flex: 1 }}
+                    onClick={() => setOnlineTab("create")}
+                  >Tạo phòng</button>
+                  <button
+                    className={onlineTab === "join" ? "primary" : "ghost"}
+                    style={{ flex: 1 }}
+                    onClick={() => setOnlineTab("join")}
+                  >Tìm phòng</button>
                 </div>
-                {roomError && <div className="player-meta">{roomError}</div>}
-                <div className="decision-actions">
-                  <button className="primary" onClick={createRoom}>Tạo phòng</button>
-                  <button className="ghost" onClick={joinRoom}>Tham gia</button>
-                </div>
+
+                {onlineTab === "create" ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                    <p>Nhập tên của bạn để tạo phòng mới.</p>
+                    <input
+                      className="input"
+                      placeholder="Tên hiển thị của bạn"
+                      value={nickname}
+                      onChange={(event) => setNickname(event.target.value)}
+                    />
+                    <button className="primary" style={{ width: "100%" }} onClick={createRoom}>Tạo phòng ngay</button>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                    <p>Nhập mã phòng từ bạn bè.</p>
+                    <input
+                      className="input"
+                      placeholder="Tên hiển thị của bạn"
+                      value={nickname}
+                      onChange={(event) => setNickname(event.target.value)}
+                    />
+                    <input
+                      className="input"
+                      placeholder="Mã phòng (VD: ABC123)"
+                      value={roomCode}
+                      onChange={(event) => setRoomCode(event.target.value)}
+                    />
+                    <button className="primary" style={{ width: "100%" }} onClick={joinRoom}>Vào phòng</button>
+                  </div>
+                )}
+                {roomError && <div className="player-meta" style={{ color: "#ff4444", marginTop: 8 }}>{roomError}</div>}
               </>
             ) : (
               <>
-                <p>Phòng: <strong>{roomInfo.roomCode}</strong></p>
+                <p>Phòng: <strong style={{ fontSize: "1.5em", color: "var(--accent)" }}>{roomInfo.roomCode}</strong></p>
                 <div className="player-list">
                   {roomInfo.players?.map((player, idx) => (
                     <div key={player.id} className="player-row">
@@ -868,9 +935,16 @@ export default function App() {
                 )}
                 <div className="decision-actions">
                   {youId === roomInfo.hostId ? (
-                    <button className="primary" onClick={startOnlineGame}>Bắt đầu ván</button>
+                    <button
+                      className="primary"
+                      onClick={startOnlineGame}
+                      disabled={roomInfo.players.length < 2}
+                      style={{ opacity: roomInfo.players.length < 2 ? 0.5 : 1, cursor: roomInfo.players.length < 2 ? 'not-allowed' : 'pointer' }}
+                    >
+                      {roomInfo.players.length < 2 ? "Chờ người chơi..." : "Bắt đầu ván"}
+                    </button>
                   ) : (
-                    <div className="player-meta">Đang chờ host bắt đầu...</div>
+                    <div className="player-meta">Đang chờ chủ phòng bắt đầu...</div>
                   )}
                 </div>
               </>
@@ -878,7 +952,7 @@ export default function App() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 

@@ -1,19 +1,27 @@
 :root {
-  font-family: "Archivo", "Segoe UI", sans-serif;
-  color: #1b1b1b;
-  background-color: #f4f0e6;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  color: #e0e0e0;
+  background-color: #121019;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  --paper: #f8f3e8;
-  --ink: #1b1b1b;
-  --accent: #c34824;
-  --accent-dark: #7a2e1c;
-  --forest: #1d3f2f;
-  --board: #f1e8d2;
-  --panel: #ffffff;
-  --stroke: #2e2b27;
-  --muted: #6d6259;
-  --gold: #c8a640;
+
+  /* Dark Theme Variables */
+  --paper: #1e1b29;
+  --ink: #e6e6e6;
+  --accent: #ff4785;
+  /* Pinkish red */
+  --accent-dark: #d43669;
+  --success: #2ecc71;
+  --forest: #27ae60;
+  --board: #181521;
+  --panel: #1e1b26;
+  --stroke: #332e40;
+  --muted: #8b869e;
+  --gold: #f1c40f;
+
+  /* Glassmorphism */
+  --glass: rgba(30, 27, 41, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
 }
 
 * {
@@ -22,7 +30,10 @@
 
 body {
   margin: 0;
-  background: radial-gradient(circle at top, #fff9ee 0%, #efe5d2 45%, #e7dbc4 100%);
+  background: #121019;
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(90, 50, 150, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(200, 50, 100, 0.1) 0%, transparent 40%);
   color: var(--ink);
   min-height: 100vh;
 }
