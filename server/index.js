@@ -210,7 +210,15 @@ io.on("connection", (socket) => {
   });
 
   socket.on("join_room", ({ code, name }) => {
-    // ... (omitted checks)
+    const room = rooms.get(code);
+    if (!room) {
+      io.to(socket.id).emit("room_error", { message: "Phòng không tồn tại." });
+      return;
+    }
+    if (room.players.length >= 8) {
+      io.to(socket.id).emit("room_error", { message: "Phòng đã đầy." });
+      return;
+    }
 
     room.players.push({ socketId: socket.id, name });
     socket.join(room.code);

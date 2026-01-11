@@ -729,10 +729,6 @@ export default function App() {
                     const isSpectator = mode === "online" && roomInfo?.presentationMode && youId !== roomInfo.hostId;
                     const canControl = mode === "local" || !roomInfo?.presentationMode || isPresenter;
 
-                    if (!canControl) {
-                      return <div className="center-msg" style={{ marginTop: 20, color: "var(--accent)" }}>Đang ở chế độ khán giả</div>;
-                    }
-
                     return (
                       <>
                         {state.roll && displayRoll && (
@@ -744,14 +740,18 @@ export default function App() {
                           </div>
                         )}
 
-                        <div className="button-row" style={{ width: "auto" }}>
-                          {state.phase === "await_roll" && (
-                            <button className="primary center-btn" onClick={() => dispatchAction({ type: "ROLL" })}>Đổ xúc xắc</button>
-                          )}
-                          {state.phase === "post_roll" && (
-                            <button className="primary center-btn" onClick={() => dispatchAction({ type: "END_TURN" })}>Kết thúc lượt</button>
-                          )}
-                        </div>
+                        {!canControl ? (
+                          <div className="center-msg" style={{ marginTop: 20, color: "var(--accent)" }}>Đang ở chế độ khán giả</div>
+                        ) : (
+                          <div className="button-row" style={{ width: "auto" }}>
+                            {state.phase === "await_roll" && (
+                              <button className="primary center-btn" onClick={() => dispatchAction({ type: "ROLL" })}>Đổ xúc xắc</button>
+                            )}
+                            {state.phase === "post_roll" && (
+                              <button className="primary center-btn" onClick={() => dispatchAction({ type: "END_TURN" })}>Kết thúc lượt</button>
+                            )}
+                          </div>
+                        )}
 
                         {state.phase === "buy_decision" && state.pending?.squareId !== undefined && (
                           <div className="decision-box" style={{ background: "rgba(30, 27, 41, 0.95)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(8px)", color: "#fff" }}>
