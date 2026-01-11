@@ -464,6 +464,7 @@ export default function App() {
           <p className="subtitle" style={{ marginBottom: "2rem" }}>Chọn chế độ chơi để bắt đầu</p>
 
           <div className="mode-selection">
+            {/* Local Mode Disabled
             <button className="primary big-btn" onClick={() => setMode("local")}>
               <div style={{ fontSize: "1.5rem" }}>🛡️</div>
               <div>
@@ -471,6 +472,7 @@ export default function App() {
                 <div style={{ fontSize: "0.8rem", opacity: 0.7 }}>Chơi offline với bạn bè hoặc máy</div>
               </div>
             </button>
+            */}
 
             <button className="primary big-btn" onClick={() => setMode("online")}>
               <div style={{ fontSize: "1.5rem" }}>🌍</div>
@@ -963,71 +965,84 @@ export default function App() {
                   state.players
                     .slice()
                     .sort((a, b) => b.cash - a.cash)
-                    .map((p) => (
-                      <div key={p.id} className="player-finance-card" style={{
-                        background: 'linear-gradient(145deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)',
-                        backdropFilter: 'blur(12px)',
-                        borderRadius: 12,
-                        padding: 16,
-                        border: p.id === activePlayer?.id ? '1px solid rgba(100, 255, 218, 0.4)' : '1px solid rgba(255,255,255,0.05)',
-                        boxShadow: '0 4px 24px rgba(0,0,0,0.2)'
-                      }}>
-                        {/* Header Info */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                            <div className="player-avatar" style={{
-                              width: 36, height: 36, borderRadius: 10,
-                              backgroundColor: playerColors[p.id % playerColors.length],
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              fontSize: '1.4rem', boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                              border: '1px solid rgba(255,255,255,0.2)'
-                            }}>
-                              {playerIcons[p.id % playerIcons.length]}
-                            </div>
-                            <div>
-                              <div style={{ fontWeight: '700', fontSize: '0.95rem', color: '#fff', letterSpacing: '0.02em' }}>{p.name}</div>
-                              {p.id === activePlayer?.id && (
-                                <div style={{ fontSize: '0.65rem', color: '#64ffda', textTransform: 'uppercase', fontWeight: 600, marginTop: 2 }}>
-                                  ● Đang chơi
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', fontWeight: 600, marginBottom: 2 }}>Tài sản</div>
-                            <div style={{ color: p.cash < 0 ? '#ff5252' : '#69f0ae', fontSize: '1.2rem', fontWeight: '800', fontFamily: 'monospace' }}>
-                              {formatMoney(p.cash)}
-                            </div>
-                          </div>
-                        </div>
+                    .map((p) => {
+                      const pColor = playerColors[p.id % playerColors.length];
+                      const isActive = p.id === activePlayer?.id;
 
-                        {/* Property Groups */}
-                        {(() => {
-                          const groups = groupProperties(state.properties, p);
-                          const hasProperties = Object.keys(groups).length > 0;
-                          if (!hasProperties) {
-                            return <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', textAlign: 'center', padding: '12px 0', fontStyle: 'italic' }}>Chưa sở hữu bất động sản</div>;
-                          }
-                          return (
-                            <div className="property-list" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                              {Object.entries(groups).map(([key, list]) => {
-                                const color = colorMap[key] || (key === 'railroads' ? '#78909c' : key === 'utilities' ? '#bcaaa4' : '#fff');
-                                return (
-                                  <div key={key} style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.15)', borderRadius: 6, padding: '6px 8px' }}>
-                                    <div style={{ width: 4, height: 28, backgroundColor: color, borderRadius: 4, marginRight: 10, flexShrink: 0, boxShadow: `0 0 6px ${color}` }}></div>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                      <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.9)', lineHeight: '1.3' }}>
-                                        {list.map(s => s.name).join(', ')}
+                      return (
+                        <div key={p.id} className="player-finance-card" style={{
+                          background: isActive
+                            ? `linear-gradient(145deg, ${pColor}55 0%, ${pColor}11 100%)` // Brighter bg if active
+                            : 'linear-gradient(145deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)',
+                          backdropFilter: 'blur(12px)',
+                          borderRadius: 12,
+                          padding: 16,
+                          border: isActive
+                            ? `2px solid ${pColor}` // Solid border match color
+                            : '1px solid rgba(255,255,255,0.05)',
+                          boxShadow: isActive
+                            ? `0 0 25px ${pColor}66, inset 0 0 10px ${pColor}22` // Bright glow
+                            : '0 4px 24px rgba(0,0,0,0.2)',
+                          transition: 'all 0.3s ease',
+                          transform: isActive ? 'scale(1.02)' : 'scale(1)'
+                        }}>
+                          {/* Header Info */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                              <div className="player-avatar" style={{
+                                width: 36, height: 36, borderRadius: 10,
+                                backgroundColor: playerColors[p.id % playerColors.length],
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '1.4rem', boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                                border: '1px solid rgba(255,255,255,0.2)'
+                              }}>
+                                {playerIcons[p.id % playerIcons.length]}
+                              </div>
+                              <div>
+                                <div style={{ fontWeight: '700', fontSize: '0.95rem', color: '#fff', letterSpacing: '0.02em' }}>{p.name}</div>
+                                {p.id === activePlayer?.id && (
+                                  <div style={{ fontSize: '0.65rem', color: '#64ffda', textTransform: 'uppercase', fontWeight: 600, marginTop: 2 }}>
+                                    ● Đang chơi
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', fontWeight: 600, marginBottom: 2 }}>Tài sản</div>
+                              <div style={{ color: p.cash < 0 ? '#ff5252' : '#69f0ae', fontSize: '1.2rem', fontWeight: '800', fontFamily: 'monospace' }}>
+                                {formatMoney(p.cash)}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Property Groups */}
+                          {(() => {
+                            const groups = groupProperties(state.properties, p);
+                            const hasProperties = Object.keys(groups).length > 0;
+                            if (!hasProperties) {
+                              return <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', textAlign: 'center', padding: '12px 0', fontStyle: 'italic' }}>Chưa sở hữu bất động sản</div>;
+                            }
+                            return (
+                              <div className="property-list" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                {Object.entries(groups).map(([key, list]) => {
+                                  const color = colorMap[key] || (key === 'railroads' ? '#78909c' : key === 'utilities' ? '#bcaaa4' : '#fff');
+                                  return (
+                                    <div key={key} style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.15)', borderRadius: 6, padding: '6px 8px' }}>
+                                      <div style={{ width: 4, height: 28, backgroundColor: color, borderRadius: 4, marginRight: 10, flexShrink: 0, boxShadow: `0 0 6px ${color}` }}></div>
+                                      <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.9)', lineHeight: '1.3' }}>
+                                          {list.map(s => s.name).join(', ')}
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    ))
+                                  );
+                                })}
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      );
+                    })
                 ) : (
                   <div className="player-meta">Chưa có dữ liệu.</div>
                 )}
