@@ -291,6 +291,22 @@ export default function App() {
     if (state.phase === "setup") setSelectedSquareId(0);
   }, [state.phase]);
 
+  // AUTO KEEP ALIVE: Ping server every 5 minutes to prevent Render Sleep Mode
+  useEffect(() => {
+    if (mode === "online") {
+      const pingInterval = setInterval(() => {
+        const url = import.meta.env.VITE_SERVER_URL;
+        if (url) {
+          console.log("[KeepAlive] Pinging server...");
+          fetch(url, { mode: 'no-cors' }) // no-cors to avoid CORS errors if just pinging
+            .then(() => console.log("[KeepAlive] Ping sent."))
+            .catch(e => console.warn("[KeepAlive] Ping failed:", e));
+        }
+      }, 4 * 60 * 1000); // 4 minutes (safe margin < 15 mins)
+      return () => clearInterval(pingInterval);
+    }
+  }, [mode]);
+
   const startGame = () => {
     const names = playerNames.map((name) => name.trim()).filter(Boolean);
     if (names.length < 2) {
