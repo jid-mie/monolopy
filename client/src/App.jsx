@@ -498,20 +498,7 @@ export default function App() {
             ← Quay lại
           </button>
 
-          {/* Connection Status Indicator */}
-          <div style={{
-            marginBottom: 16,
-            padding: "8px 12px",
-            borderRadius: 6,
-            background: socketRef.current?.connected ? "rgba(100, 255, 218, 0.1)" : "rgba(255, 82, 82, 0.1)",
-            border: socketRef.current?.connected ? "1px solid rgba(100, 255, 218, 0.3)" : "1px solid rgba(255, 82, 82, 0.3)",
-            color: socketRef.current?.connected ? "#64ffda" : "#ff5252",
-            fontSize: "0.85rem",
-            display: "flex", alignItems: "center", gap: 8
-          }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: socketRef.current?.connected ? "#64ffda" : "#ff5252" }}></div>
-            {socketRef.current?.connected ? "Đã kết nối Server" : "Đang mất kết nối Server..."}
-          </div>
+          {/* Connection Status Indicator Removed */}
 
           <div style={{ width: "100%", textAlign: "left", marginBottom: 8 }}>Tên hiển thị:</div>
           <input
@@ -548,7 +535,17 @@ export default function App() {
                     max="8"
                     value={teamCount}
                     onChange={(e) => setTeamCount(Math.max(2, Math.min(8, Number(e.target.value))))}
-                    style={{ width: 60, padding: 6, borderRadius: 4, background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)" }}
+                    style={{
+                      width: 100,
+                      padding: "8px 12px",
+                      borderRadius: 6,
+                      background: "rgba(255,255,255,0.1)",
+                      color: "#fff",
+                      border: "1px solid rgba(255,255,255,0.2)",
+                      fontSize: "1rem",
+                      fontWeight: "bold",
+                      textAlign: "center"
+                    }}
                   />
                 </div>
               )}
