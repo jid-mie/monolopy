@@ -190,7 +190,11 @@ io.on("connection", (socket) => {
     if (room.presentationMode) {
       // Auto-start game logic for Presentation Mode
       const count = room.teamCount;
-      const names = Array.from({ length: count }, (_, i) => `Nhóm ${i + 1}`);
+      const names = Array.from({ length: count }, (_, i) => {
+        const num = i === 0 ? 1 : i + 2;
+        return `Nhóm ${num}`;
+      });
+      console.log("[DEBUG] Generated Names:", names); // Verify logic
       const dummyIds = Array.from({ length: count }, (_, i) => `team-${room.code}-${i}`);
       room.playerOrder = dummyIds;
       room.state = createInitialState(names, names.map(() => false));

@@ -708,8 +708,9 @@ export function gameReducer(state, action) {
     const square = getSquare(squareId);
     const info = state.properties[squareId];
     if (!square || !info || info.ownerId !== activeId) return state;
-    if (info.houses > 0 || info.mortgaged) return state;
-    const value = Math.round(square.price * 0.5);
+    // Allow selling even if upgraded (reset houses to 0)
+
+    const value = square.price || 0; // Refund original price
     const nextState = {
       ...state,
       properties: {
@@ -722,7 +723,12 @@ export function gameReducer(state, action) {
           : p
       )
     };
-    return logWithLimit(nextState, `${state.players[activeId].name} bán ${square.name} và nhận $${value}.`);
+    // If pending was upgrade_decision for this square, clear it to avoid stuck state
+    const isPendingTarget = state.pending?.squareId === squareId;
+    return logWithLimit(
+      { ...nextState, phase: isPendingTarget ? "post_roll" : nextState.phase, pending: isPendingTarget ? null : nextState.pending },
+      `${state.players[activeId].name} bán đứt ${square.name} với giá gốc $${value}.`
+    );
   }
 
   if (action.type === "BUY_BACK") {

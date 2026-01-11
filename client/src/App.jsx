@@ -750,6 +750,24 @@ export default function App() {
                       <strong>Đi tù ngay lập tức!</strong>
                     </div>
                   )}
+
+                  {/* Option to Sell Owned Property (Especially for Debt) */}
+                  {squareInfo?.ownerId === state?.activePlayerIndex && (
+                    <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+                      <button
+                        className="primary"
+                        style={{ width: "100%", background: "rgba(255, 61, 0, 0.2)", border: "1px solid #ff3d00", color: "#ff3d00" }}
+                        onClick={() => dispatchAction({ type: "SELL_PROPERTY", payload: { squareId: selectedSquare.id } })}
+                      >
+                        Bán Tài Sản (${formatMoney(selectedSquare.price)})
+                      </button>
+                      {activePlayer?.cash < 0 && (
+                        <div style={{ fontSize: 11, color: '#ff3d00', marginTop: 4, textAlign: 'center' }}>
+                          Cần bán để trả nợ!
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
@@ -869,6 +887,7 @@ export default function App() {
                             <div className="decision-actions">
                               <button className="primary" onClick={() => dispatchAction({ type: "UPGRADE_CONFIRM" })}>Nâng cấp</button>
                               <button className="ghost" onClick={() => dispatchAction({ type: "UPGRADE_DECLINE" })}>Bỏ qua</button>
+                              <button className="ghost" style={{ border: "1px solid #ff5252", color: "#ff5252" }} onClick={() => dispatchAction({ type: "SELL_PROPERTY", payload: { squareId: state.pending.squareId } })}>Bán (${BOARD[state.pending.squareId].price})</button>
                             </div>
                           </div>
                         )}
