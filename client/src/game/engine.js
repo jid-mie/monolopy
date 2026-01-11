@@ -1,7 +1,7 @@
 import { BOARD, GROUPS, RAILROADS, UTILITIES } from "./board.js";
 import { CHANCE_CARDS, CHEST_CARDS } from "./cards.js";
 
-export const START_CASH = 2000;
+export const START_CASH = 1250;
 export const GO_BONUS = 200;
 export const JAIL_BAIL = 100;
 
