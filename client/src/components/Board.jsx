@@ -276,7 +276,15 @@ export default function Board({ board, properties, players, activePlayerId, colo
                 {info && info.houses > 0 && (
                   <div className="house-row">
                     {Array.from({ length: info.houses }).map((_, idx) => (
-                      <span key={idx} className={info.houses === 5 ? "hotel" : "house"} />
+                      <span
+                        key={idx}
+                        className={info.houses === 5 ? "hotel" : "house"}
+                        style={{
+                          backgroundColor: colors[ownerId % colors.length],
+                          boxShadow: `0 0 2px ${colors[ownerId % colors.length]}`,
+                          border: '1px solid rgba(255,255,255,0.8)'
+                        }}
+                      />
                     ))}
                   </div>
                 )}
