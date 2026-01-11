@@ -141,6 +141,7 @@ export default function App() {
   const socketRef = useRef(null);
   const [playerNames, setPlayerNames] = useState(["", "", "", "", "", ""]);
   const [presentationMode, setPresentationMode] = useState(false);
+  const [showIntro, setShowIntro] = useState(true);
   const [teamCount, setTeamCount] = useState(4);
   const [trade, setTrade] = useState({ fromId: 0, toId: 1, cash: 0, propertyId: "" });
   const [auctionBid, setAuctionBid] = useState(0);
@@ -1407,6 +1408,47 @@ export default function App() {
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+      {showIntro && (
+        <div className="modal-backdrop" style={{ zIndex: 9999 }}>
+          <div className="modal-card" style={{ maxWidth: 800, textAlign: 'left' }}>
+            <h1 style={{ textAlign: 'center', color: '#64ffda', marginBottom: 20 }}>HƯỚNG DẪN & LUẬT CHƠI</h1>
+
+            <div style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: 10, fontSize: '0.95rem', lineHeight: 1.6 }}>
+              <h3 style={{ color: '#fff', borderBottom: '1px solid #ffffff33', paddingBottom: 5 }}>1. Cách sử dụng Web</h3>
+              <ul style={{ marginBottom: 20, paddingLeft: 20 }}>
+                <li style={{ marginBottom: 8 }}><strong>Bước 1:</strong> Nhập <strong>Tên hiển thị</strong> (Nickname).</li>
+                <li style={{ marginBottom: 8 }}><strong>Bước 2:</strong>
+                  <ul style={{ marginTop: 4 }}>
+                    <li>Chọn <strong>Tạo phòng:</strong> Nếu bạn là Host. Tick vào <em>"Chế độ Thuyết trình"</em> để tự động tạo các nhóm (Nhóm 1, 3, 4...) nếu muốn chơi team trên lớp.</li>
+                    <li>Chọn <strong>Vào phòng:</strong> Nhập Mã phòng từ Host để tham gia.</li>
+                  </ul>
+                </li>
+                <li><strong>Lưu ý:</strong> Chế độ Thuyết trình dành cho lớp học/nhóm đông sử dụng chung một màn hình lớn.</li>
+              </ul>
+
+              <h3 style={{ color: '#fff', borderBottom: '1px solid #ffffff33', paddingBottom: 5 }}>2. Luật chơi Đặc biệt</h3>
+              <ul style={{ paddingLeft: 20 }}>
+                <li style={{ marginBottom: 6 }}><strong>Mục tiêu:</strong> Trở thành đại gia bất động sản cuối cùng chưa phá sản.</li>
+                <li style={{ marginBottom: 6 }}><strong>Trả lời câu hỏi:</strong> Cơ hội nhận giảm giá <strong>20%</strong> khi mua đất hoặc miễn phạt nếu trả lời đúng câu hỏi kiến thức.</li>
+                <li style={{ marginBottom: 6 }}><strong>Thị trường khốc liệt:</strong> Giá thuê nhà đất rất cao. Hãy cẩn thận khi đi vào đất đối thủ!</li>
+                <li style={{ marginBottom: 6 }}><strong>Gỡ nợ:</strong> Nếu thiếu tiền, bạn có thể bán tài sản lại cho Ngân hàng với <strong>100% giá gốc</strong>.</li>
+                <li style={{ marginBottom: 6 }}><strong>Nhà tù:</strong> Phí bảo lãnh <strong>$100</strong>. Sau 3 lượt không đổ được đôi, bạn bắt buộc phải đóng phạt để ra.</li>
+                <li><strong>Hình phạt:</strong> Các ô Thuế là ô Hình phạt, mất tiền ngay lập tức.</li>
+              </ul>
+            </div>
+
+            <div style={{ marginTop: 24, textAlign: 'center' }}>
+              <button
+                className="primary"
+                style={{ padding: '12px 40px', fontSize: '1.2rem', boxShadow: '0 0 20px rgba(100, 255, 218, 0.4)' }}
+                onClick={() => setShowIntro(false)}
+              >
+                ĐÃ HIỂU, VÀO GAME!
+              </button>
+            </div>
           </div>
         </div>
       )}
