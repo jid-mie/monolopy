@@ -243,6 +243,25 @@ export default function Board({ board, properties, players, activePlayerId, colo
                   }
                 }}
               >
+                {/* Arrow indicator for active player position */}
+                {isActive && (
+                  <div className={`position-arrow arrow-${side}`}>
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      {(side === "bottom" || side === "corner-bl" || side === "corner-br") && (
+                        <path d="M12 4l-8 8h5v8h6v-8h5z" />
+                      )}
+                      {(side === "top" || side === "corner-tl" || side === "corner-tr") && (
+                        <path d="M12 20l8-8h-5v-8h-6v8h-5z" />
+                      )}
+                      {side === "left" && (
+                        <path d="M20 12l-8-8v5h-8v6h8v5z" />
+                      )}
+                      {side === "right" && (
+                        <path d="M4 12l8 8v-5h8v-6h-8v-5z" />
+                      )}
+                    </svg>
+                  </div>
+                )}
                 {color && <div className="color-strip" />}
                 {typeLabel && <div className="type-badge">{typeLabel}</div>}
                 {hasIcon && (
