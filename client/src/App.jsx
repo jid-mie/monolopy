@@ -996,7 +996,7 @@ export default function App() {
                                 fontSize: '1.4rem', boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
                                 border: '1px solid rgba(255,255,255,0.2)'
                               }}>
-                                {playerIcons[p.id % playerIcons.length]}
+                                {p.name.startsWith("Nhóm ") ? <span style={{ fontWeight: 800 }}>{p.name.split(" ")[1]}</span> : playerIcons[p.id % playerIcons.length]}
                               </div>
                               <div>
                                 <div style={{ fontWeight: '700', fontSize: '0.95rem', color: '#fff', letterSpacing: '0.02em' }}>{p.name}</div>

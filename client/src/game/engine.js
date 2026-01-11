@@ -3,7 +3,7 @@ import { CHANCE_CARDS, CHEST_CARDS } from "./cards.js";
 
 export const START_CASH = 2000;
 export const GO_BONUS = 200;
-export const JAIL_BAIL = 50;
+export const JAIL_BAIL = 100;
 
 export function shuffle(items) {
   const copy = [...items];

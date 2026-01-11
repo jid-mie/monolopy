@@ -21,7 +21,7 @@ const typeLabels = {
   challenge: "THỬ THÁCH",
   railroad: "ĐƯỜNG SẮT",
   utility: "TIỆN ÍCH",
-  tax: "THUẾ"
+  tax: "PHẠT"
 };
 
 function TypeIcon({ type }) {
@@ -144,7 +144,7 @@ function renderTokens(players, squareId, colors, activePlayerId, visualPositions
             style={{ backgroundColor: colors[player.id % colors.length], transition: "all 0.4s" }}
             title={player.name}
           >
-            {playerIcons[player.id % playerIcons.length]}
+            <span style={{ fontWeight: 800 }}>{player.name.startsWith("Nhóm ") ? player.name.split(" ")[1] : playerIcons[player.id % playerIcons.length]}</span>
           </span>
         );
       })}
