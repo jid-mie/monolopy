@@ -367,7 +367,7 @@ export default function App() {
 
   const joinRoom = () => {
     if (!nickname.trim() || !roomCode.trim()) {
-      alert("Nhập đủ thông tin.");
+      alert("Vui lòng nhập Tên hiển thị và Mã phòng.");
       return;
     }
     socketRef.current?.emit("join_room", { code: roomCode.trim().toUpperCase(), name: nickname.trim() });
