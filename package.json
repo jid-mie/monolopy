@@ -11,6 +11,7 @@
     "dev": "concurrently -n client,server \"npm:client:dev\" \"npm:server:dev\""
   },
   "devDependencies": {
-    "concurrently": "^9.0.1"
+    "concurrently": "^9.0.1",
+    "socket.io-client": "^4.8.3"
   }
 }

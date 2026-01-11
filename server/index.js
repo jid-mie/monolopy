@@ -2,9 +2,13 @@ import express from "express";
 import http from "http";
 import path from "path";
 import { fileURLToPath } from "url";
+import { EventEmitter } from "events";
 import { Server } from "socket.io";
 import { createInitialState } from "../client/src/game/engine.js";
 import { gameReducer } from "../client/src/game/reducer.js";
+
+// Increase EventEmitter listener limit to avoid warnings in high‑player rooms
+EventEmitter.defaultMaxListeners = 1000;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,8 +25,7 @@ const io = new Server(server, {
   pingTimeout: 5000   // 5s
 });
 
-// Increase EventEmitter listener limit to avoid warnings in high‑player rooms
-require('events').EventEmitter.defaultMaxListeners = 1000;
+
 
 const clientDist = path.resolve(__dirname, "..", "client", "dist");
 
