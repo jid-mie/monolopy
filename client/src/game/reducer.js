@@ -24,6 +24,7 @@ const CHALLENGE_REWARD = {
   hard: { win: 150, lose: 60 }
 };
 const QUESTION_CHANCE = 1.0;
+const WRONG_ANSWER_PENALTY = 50;
 
 function pickQuestion(state, targetDifficulty) {
   const usedIds = state.usedQuestionIds || [];
@@ -173,6 +174,27 @@ function resolveLanding(state, playerId, diceTotal, rentMultiplier = 1) {
     }
 
     const rent = calculateRent(nextState, square.id, diceTotal, rentMultiplier);
+
+    // NEW: Option to buy back property from owner
+    const totalValue = square.price || 0;
+    const houseValue = (info.houses || 0) * (square.houseCost || 0);
+    const buyBackCost = totalValue + houseValue + rent;
+
+    // Only offer buy back if player can afford it
+    if (nextState.players[playerId].cash >= buyBackCost) {
+      return {
+        ...nextState,
+        phase: "buy_back_decision",
+        pending: {
+          type: "buy_back",
+          squareId: square.id,
+          rent: rent,
+          buyBackCost: buyBackCost,
+          ownerId: info.ownerId
+        }
+      };
+    }
+
     nextState = updatePlayer(nextState, playerId, (player) => ({
       ...player,
       cash: player.cash - rent
@@ -405,34 +427,52 @@ export function gameReducer(state, action) {
 
     if (state.pending.context === "purchase") {
       const discount = correct ? 20 : 0;
-      const message = correct
-        ? `Trả lời đúng. Giảm giá 20% khi mua tài sản. (Còn ${remainingQuestions} câu hỏi)`
-        : `Trả lời sai. Không được giảm giá. (Còn ${remainingQuestions} câu hỏi)`;
-      return logWithLimit({
-        ...state,
-        usedQuestionIds,
-        phase: "buy_decision",
-        pending: { type: "buy", squareId: state.pending.squareId, discountPercent: discount }
-      }, message);
+
+      if (correct) {
+        const message = `Trả lời đúng. Giảm giá 20% khi mua tài sản. (Còn ${remainingQuestions} câu hỏi)`;
+        return logWithLimit({
+          ...state,
+          usedQuestionIds,
+          phase: "buy_decision",
+          pending: { type: "buy", squareId: state.pending.squareId, discountPercent: discount }
+        }, message);
+      } else {
+        // Wrong answer: deduct $50 penalty
+        const penaltyState = updatePlayer(state, activeId, (player) => ({
+          ...player,
+          cash: player.cash - WRONG_ANSWER_PENALTY
+        }));
+        const message = `Trả lời sai. Không được giảm giá và bị phạt $${WRONG_ANSWER_PENALTY}. (Còn ${remainingQuestions} câu hỏi)`;
+        return logWithLimit({
+          ...penaltyState,
+          usedQuestionIds,
+          phase: "buy_decision",
+          pending: { type: "buy", squareId: state.pending.squareId, discountPercent: discount }
+        }, message);
+      }
     }
 
     if (state.pending.context === "tax") {
       if (correct) {
         return logWithLimit({ ...state, usedQuestionIds, phase: "post_roll", pending: null }, `Trả lời đúng. Được miễn tiền phạt $${state.pending.amount}. (Còn ${remainingQuestions} câu hỏi)`);
       }
-      // Incorrect: Pay the tax
+      // Incorrect: Pay the tax + $50 penalty
       const amount = state.pending.amount;
+      const totalPenalty = amount + WRONG_ANSWER_PENALTY;
       const nextState = updatePlayer(state, activeId, (player) => ({
         ...player,
-        cash: player.cash - amount
+        cash: player.cash - totalPenalty
       }));
-      return logWithLimit({ ...nextState, usedQuestionIds, phase: "post_roll", pending: null }, `Trả lời sai. Bị phạt $${amount} tiền thuế. (Còn ${remainingQuestions} câu hỏi)`);
+      return logWithLimit({ ...nextState, usedQuestionIds, phase: "post_roll", pending: null }, `Trả lời sai. Bị phạt $${amount} tiền thuế và thêm $${WRONG_ANSWER_PENALTY} phạt trả lời sai. (Còn ${remainingQuestions} câu hỏi)`);
     }
 
     if (state.pending.context === "challenge") {
       const reward = CHALLENGE_REWARD[difficulty] || CHALLENGE_REWARD.easy;
-      const delta = correct ? reward.win : -reward.lose;
-      const label = correct ? `Trả lời đúng, nhận $${reward.win}. (Còn ${remainingQuestions} câu hỏi)` : `Trả lời sai, mất $${reward.lose}. (Còn ${remainingQuestions} câu hỏi)`;
+      // Wrong answer: lose reward.lose + $50 penalty
+      const delta = correct ? reward.win : -(reward.lose + WRONG_ANSWER_PENALTY);
+      const label = correct
+        ? `Trả lời đúng, nhận $${reward.win}. (Còn ${remainingQuestions} câu hỏi)`
+        : `Trả lời sai, mất $${reward.lose} và bị phạt thêm $${WRONG_ANSWER_PENALTY}. (Còn ${remainingQuestions} câu hỏi)`;
       const nextState = updatePlayer(state, activeId, (player) => ({
         ...player,
         cash: player.cash + delta
@@ -778,6 +818,62 @@ export function gameReducer(state, action) {
         : state.properties
     };
     return logWithLimit(nextState, `Giao dịch đã thực hiện giữa ${from.name} và ${to.name}.`);
+  }
+
+  if (action.type === "BUY_OWNED_PROPERTY") {
+    if (state.phase !== "buy_back_decision" || state.pending?.type !== "buy_back") return state;
+    const { squareId, buyBackCost, ownerId } = state.pending;
+    const square = getSquare(squareId);
+
+    // Deduct from Player
+    let nextState = updatePlayer(state, activeId, (p) => ({
+      ...p,
+      cash: p.cash - buyBackCost,
+      properties: [...p.properties, squareId]
+    }));
+
+    // Add to Owner
+    nextState = updatePlayer(nextState, ownerId, (p) => ({
+      ...p,
+      cash: p.cash + buyBackCost,
+      properties: p.properties.filter((id) => id !== squareId)
+    }));
+
+    // Transfer Property (keep houses)
+    nextState = {
+      ...nextState,
+      properties: {
+        ...nextState.properties,
+        [squareId]: { ...nextState.properties[squareId], ownerId: activeId }
+      },
+      phase: "post_roll",
+      pending: null
+    };
+
+    return logWithLimit(nextState, `${state.players[activeId].name} mua lại ${square.name} từ ${state.players[ownerId].name} với giá $${buyBackCost}.`);
+  }
+
+  if (action.type === "DECLINE_BUY_OWNED_PROPERTY") {
+    if (state.phase !== "buy_back_decision" || state.pending?.type !== "buy_back") return state;
+    const { rent, ownerId } = state.pending;
+
+    let nextState = updatePlayer(state, activeId, (p) => ({
+      ...p,
+      cash: p.cash - rent
+    }));
+    nextState = updatePlayer(nextState, ownerId, (p) => ({
+      ...p,
+      cash: p.cash + rent
+    }));
+
+    nextState = {
+      ...nextState,
+      lastCreditorId: ownerId,
+      phase: "post_roll",
+      pending: null
+    };
+
+    return logWithLimit(nextState, `${state.players[activeId].name} trả $${rent} tiền thuê cho ${state.players[ownerId].name}.`);
   }
 
   return state;

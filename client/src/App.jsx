@@ -140,7 +140,8 @@ export default function App() {
   const [youId, setYouId] = useState(null);
   const socketRef = useRef(null);
   const [playerNames, setPlayerNames] = useState(["", "", "", "", "", ""]);
-  const [playerAIs, setPlayerAIs] = useState([false, false, false, false, false, false]);
+  const [presentationMode, setPresentationMode] = useState(false);
+  const [teamCount, setTeamCount] = useState(4);
   const [trade, setTrade] = useState({ fromId: 0, toId: 1, cash: 0, propertyId: "" });
   const [auctionBid, setAuctionBid] = useState(0);
   const [selectedSquareId, setSelectedSquareId] = useState(0);
@@ -170,57 +171,41 @@ export default function App() {
 
   useEffect(() => {
     if (!state.roll) return;
-
     setIsRolling(true);
     setDisplayRoll({ die1: 1, die2: 1 });
-
-    if (rollIntervalRef.current) {
-      clearInterval(rollIntervalRef.current);
-    }
-
+    if (rollIntervalRef.current) clearInterval(rollIntervalRef.current);
     rollIntervalRef.current = setInterval(() => {
       setDisplayRoll({
         die1: Math.floor(Math.random() * 6) + 1,
         die2: Math.floor(Math.random() * 6) + 1
       });
     }, 120);
-
     const timer = setTimeout(() => {
       clearInterval(rollIntervalRef.current);
       rollIntervalRef.current = null;
       setDisplayRoll({ die1: state.roll.die1, die2: state.roll.die2 });
       setIsRolling(false);
     }, 900);
-
     return () => {
       clearInterval(rollIntervalRef.current);
-      rollIntervalRef.current = null;
-      clearTimeout(timer);
+      if (timer) clearTimeout(timer);
     };
   }, [state.roll?.die1, state.roll?.die2]);
 
-  // Question timer effect - 15 seconds countdown
+  // Question timer effect
   useEffect(() => {
-    // Clear any existing timer
     if (questionTimerRef.current) {
       clearInterval(questionTimerRef.current);
       questionTimerRef.current = null;
     }
-
-    // Only start timer when in question phase
     if (state.phase !== "question" || !state.pending?.type === "question") {
       setQuestionTimer(15);
       return;
     }
-
-    // Reset timer to 15 seconds when question appears
     setQuestionTimer(15);
-
-    // Start countdown
     questionTimerRef.current = setInterval(() => {
       setQuestionTimer((prev) => {
         if (prev <= 1) {
-          // Time's up! Auto-submit wrong answer (answer index -1 will never match)
           clearInterval(questionTimerRef.current);
           questionTimerRef.current = null;
           dispatchAction({ type: "QUESTION_ANSWER", payload: { choiceIndex: -1 } });
@@ -229,12 +214,8 @@ export default function App() {
         return prev - 1;
       });
     }, 1000);
-
     return () => {
-      if (questionTimerRef.current) {
-        clearInterval(questionTimerRef.current);
-        questionTimerRef.current = null;
-      }
+      if (questionTimerRef.current) clearInterval(questionTimerRef.current);
     };
   }, [state.phase, state.pending?.questionIndex]);
 
@@ -250,35 +231,35 @@ export default function App() {
       setRoomError("");
       return;
     }
-
     if (socketRef.current) return;
-    const socketUrl = import.meta.env.VITE_SERVER_URL || "http://localhost:3000";
-    const socket = io(socketUrl);
+    const socketUrl = import.meta.env.VITE_SERVER_URL || undefined;
+    console.log("Initializing socket...");
+    const socket = io(socketUrl, {
+      path: "/socket.io",
+      transports: ["websocket", "polling"], // Enable WS for performance
+      reconnectionAttempts: 10
+    });
     socketRef.current = socket;
 
+    socket.on("connect", () => {
+      console.log("✅ Socket Connected! ID:", socket.id);
+      setRoomError("");
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("❌ Socket Connect Error:", err.message);
+      setRoomError("Lỗi kết nối Server: " + err.message);
+    });
     socket.on("room_joined", (payload) => {
+      console.log("🔥 ROOM JOINED PAYLOAD:", payload); // Look for this in console
       setRoomInfo(payload);
       setYouId(payload.youId);
       setRoomError("");
     });
-
-    socket.on("room_update", (payload) => {
-      console.log("Room Update:", payload);
-      setRoomInfo(payload);
-    });
-
-    socket.on("room_error", (payload) => {
-      setRoomError(payload.message || "Không thể vào phòng.");
-    });
-
-    socket.on("connect_error", () => {
-      setRoomError("Không kết nối được server. Hãy kiểm tra server đang chạy.");
-    });
-
-    socket.on("game_state", (payload) => {
-      setOnlineState(payload);
-    });
-
+    socket.on("room_update", (payload) => setRoomInfo(payload));
+    socket.on("room_error", (payload) => setRoomError(payload.message || "Lỗi phòng."));
+    socket.on("connect_error", () => setRoomError("Không kết nối được server."));
+    socket.on("game_state", (payload) => setOnlineState(payload));
     socket.on("room_left", () => {
       setRoomInfo(null);
       setOnlineState(null);
@@ -292,6 +273,7 @@ export default function App() {
       player.properties.map((id) => ({ id, name: BOARD[id].name, ownerId: player.id }))
     );
   }, [state.players]);
+
   const tradeOptions = useMemo(() => {
     return availableProperties.filter((prop) => prop.ownerId === Number(trade.fromId));
   }, [availableProperties, trade.fromId]);
@@ -305,15 +287,13 @@ export default function App() {
   }, [state.properties]);
 
   useEffect(() => {
-    if (state.phase === "setup") {
-      setSelectedSquareId(0);
-    }
+    if (state.phase === "setup") setSelectedSquareId(0);
   }, [state.phase]);
 
   const startGame = () => {
     const names = playerNames.map((name) => name.trim()).filter(Boolean);
     if (names.length < 2) {
-      alert("Vui lòng nhập ít nhất hai người chơi.");
+      alert("Cần ít nhất 2 người.");
       return;
     }
     const aiFlags = playerNames.map((name, idx) => Boolean(name.trim()) && playerAIs[idx]);
@@ -334,8 +314,8 @@ export default function App() {
 
   const resetGame = () => {
     dispatchLocal({ type: "RESET" });
-    setPlayerNames(["", "", "", "", "", ""]);
-    setPlayerAIs([false, false, false, false, false, false]);
+    setPlayerNames(Array(6).fill(""));
+    setPlayerAIs(Array(6).fill(false));
     setOrderModeLocal("sequential");
   };
 
@@ -354,7 +334,7 @@ export default function App() {
 
   const handleBuyBack = () => {
     if (!buyBackId) return;
-    dispatchAction({ type: "BUY_BACK", payload: { squareId: Number(buyBackId) } });
+    dispatchAction({ type: "BUY_OWNED_PROPERTY", payload: { squareId: Number(buyBackId) } });
   };
 
   const dispatchAction = (action) => {
@@ -366,36 +346,41 @@ export default function App() {
   };
 
   const createRoom = () => {
+    console.log("createRoom called", {
+      nickname,
+      presentationMode,
+      teamCount,
+      socketExists: !!socketRef.current,
+      connected: socketRef.current?.connected
+    });
+
     if (!nickname.trim()) {
       alert("Vui lòng nhập tên hiển thị.");
       return;
     }
-    socketRef.current?.emit("create_room", { name: nickname.trim() });
+    if (!socketRef.current || !socketRef.current.connected) {
+      alert("Chưa kết nối được đến Server (Đang kết nối...). Vui lòng đợi 5s rồi thử lại.");
+      return;
+    }
+    socketRef.current.emit("create_room", { name: nickname.trim(), presentationMode, teamCount });
   };
 
   const joinRoom = () => {
     if (!nickname.trim() || !roomCode.trim()) {
-      alert("Vui lòng nhập nickname và mã phòng.");
+      alert("Nhập đủ thông tin.");
       return;
     }
     socketRef.current?.emit("join_room", { code: roomCode.trim().toUpperCase(), name: nickname.trim() });
   };
 
-  const startOnlineGame = () => {
-    socketRef.current?.emit("start_game");
-  };
-
+  const startOnlineGame = () => socketRef.current?.emit("start_game");
   const leaveRoom = () => {
     socketRef.current?.emit("leave_room");
     setRoomInfo(null);
     setOnlineState(null);
     setYouId(null);
   };
-
-  const changeOrderModeOnline = (event) => {
-    const modeValue = event.target.value;
-    socketRef.current?.emit("set_order_mode", { mode: modeValue });
-  };
+  const changeOrderModeOnline = (e) => socketRef.current?.emit("set_order_mode", { mode: e.target.value });
 
   const aiLock = useRef(false);
 
@@ -419,23 +404,19 @@ export default function App() {
       runAction({ type: "ROLL" });
       return;
     }
-
     if (state.phase === "jail_choice") {
-      if (activePlayer.cash >= 250) {
-        runAction({ type: "JAIL_PAY" });
-      } else {
-        runAction({ type: "JAIL_ROLL" });
-      }
+      runAction({ type: activePlayer.cash >= 250 ? "JAIL_PAY" : "JAIL_ROLL" });
       return;
     }
-
     if (state.phase === "buy_decision" && state.pending?.squareId !== undefined) {
-      const square = BOARD[state.pending.squareId];
-      const shouldBuy = activePlayer.cash - square.price >= 200;
-      runAction({ type: shouldBuy ? "BUY" : "DECLINE_BUY" });
+      const sq = BOARD[state.pending.squareId];
+      runAction({ type: activePlayer.cash - sq.price >= 200 ? "BUY" : "DECLINE_BUY" });
       return;
     }
-
+    if (state.phase === "buy_back_decision" && state.pending?.type === "buy_back") {
+      runAction({ type: activePlayer.cash >= state.pending.buyBackCost ? "BUY_OWNED_PROPERTY" : "DECLINE_BUY_OWNED_PROPERTY" });
+      return;
+    }
     if (state.phase === "auction" && state.pending?.type === "auction") {
       const auction = state.pending;
       const bidder = state.players[auction.activeBidderId];
@@ -449,22 +430,16 @@ export default function App() {
       }
       return;
     }
-
-    if (state.phase === "post_roll") {
-      runAction({ type: "END_TURN" });
-    }
+    if (state.phase === "post_roll") runAction({ type: "END_TURN" });
     if (state.phase === "question" && state.pending?.type === "question") {
-      const options = state.pending.question?.options || [];
-      const choiceIndex = Math.floor(Math.random() * options.length);
-      runAction({ type: "QUESTION_ANSWER", payload: { choiceIndex } });
+      const opts = state.pending.question?.options || [];
+      runAction({ type: "QUESTION_ANSWER", payload: { choiceIndex: Math.floor(Math.random() * opts.length) } });
     }
   }, [state, activePlayer, mode]);
 
   const selectedSquare = BOARD[selectedSquareId];
   const selectedInfo = state.properties?.[selectedSquareId];
-  const selectedOwner = selectedInfo?.ownerId !== null && selectedInfo?.ownerId !== undefined
-    ? state.players?.[selectedInfo.ownerId]?.name
-    : "Chưa có chủ";
+  const selectedOwner = selectedInfo?.ownerId != null ? state.players?.[selectedInfo.ownerId]?.name : "Chưa có chủ";
 
   const squareInfo = selectedSquare ? {
     id: selectedSquareId,
@@ -505,10 +480,115 @@ export default function App() {
               </div>
             </button>
           </div>
+
+        </div>
+      </div>
+
+    );
+  }
+
+  if (mode === "online" && (!roomInfo || !roomInfo.roomCode)) {
+    return (
+      <div className="app-shell welcome-screen">
+        <div className="welcome-card card" style={{ maxWidth: 420 }}>
+          <h2 className="title" style={{ fontSize: "2rem" }}>Chơi Online</h2>
+          <button className="ghost" onClick={() => setMode(null)} style={{ marginBottom: 20 }}>
+            ← Quay lại
+          </button>
+
+          {/* Connection Status Indicator */}
+          <div style={{
+            marginBottom: 16,
+            padding: "8px 12px",
+            borderRadius: 6,
+            background: socketRef.current?.connected ? "rgba(100, 255, 218, 0.1)" : "rgba(255, 82, 82, 0.1)",
+            border: socketRef.current?.connected ? "1px solid rgba(100, 255, 218, 0.3)" : "1px solid rgba(255, 82, 82, 0.3)",
+            color: socketRef.current?.connected ? "#64ffda" : "#ff5252",
+            fontSize: "0.85rem",
+            display: "flex", alignItems: "center", gap: 8
+          }}>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: socketRef.current?.connected ? "#64ffda" : "#ff5252" }}></div>
+            {socketRef.current?.connected ? "Đã kết nối Server" : "Đang mất kết nối Server..."}
+          </div>
+
+          <div style={{ width: "100%", textAlign: "left", marginBottom: 8 }}>Tên hiển thị:</div>
+          <input
+            className="input"
+            placeholder="Nhập tên của bạn..."
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            style={{ marginBottom: 24 }}
+          />
+
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", margin: "0 0 24px 0", paddingTop: 24 }}>
+            <h3 style={{ margin: "0 0 16px 0", color: "var(--accent)" }}>Tạo phòng mới</h3>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <input
+                  type="checkbox"
+                  id="presentationMode"
+                  checked={presentationMode}
+                  onChange={(e) => setPresentationMode(e.target.checked)}
+                  style={{ width: 16, height: 16, cursor: "pointer" }}
+                />
+                <label htmlFor="presentationMode" style={{ cursor: "pointer", fontSize: "0.95rem" }}>
+                  Chế độ Thuyết trình <span style={{ fontSize: "0.8em", opacity: 0.7 }}>(Host điều khiển tất cả)</span>
+                </label>
+              </div>
+
+              {presentationMode && (
+                <div style={{ display: "flex", alignItems: "center", gap: 12, paddingLeft: 28, animation: "fadeIn 0.3s ease" }}>
+                  <label style={{ fontSize: "0.9rem" }}>Số lượng nhóm:</label>
+                  <input
+                    type="number"
+                    min="2"
+                    max="8"
+                    value={teamCount}
+                    onChange={(e) => setTeamCount(Math.max(2, Math.min(8, Number(e.target.value))))}
+                    style={{ width: 60, padding: 6, borderRadius: 4, background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)" }}
+                  />
+                </div>
+              )}
+            </div>
+
+            <button className="primary" style={{ width: "100%" }} onClick={createRoom}>
+              Tạo Phòng
+            </button>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 16, margin: "0 0 24px 0" }}>
+            <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }}></div>
+            <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.9rem" }}>HOẶC</span>
+            <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }}></div>
+          </div>
+
+          <div>
+            <h3 style={{ margin: "0 0 16px 0" }}>Vào phòng có sẵn</h3>
+            <div style={{ display: "flex", gap: 8 }}>
+              <input
+                className="input"
+                placeholder="Mã phòng (VD: ABCDE)"
+                value={roomCode}
+                onChange={(e) => setRoomCode(e.target.value)}
+                style={{ flex: 1, textTransform: "uppercase" }}
+              />
+              <button className="primary" onClick={joinRoom} disabled={!roomCode}>
+                Vào
+              </button>
+            </div>
+          </div>
+
+          {roomError && (
+            <div style={{ marginTop: 20, color: "#ff5252", background: "rgba(255,82,82,0.1)", padding: 12, borderRadius: 8, fontSize: "0.9rem" }}>
+              {roomError}
+            </div>
+          )}
         </div>
       </div>
     );
   }
+
 
   return (
     <>
@@ -518,7 +598,7 @@ export default function App() {
             <div className="title">Cờ Tỷ Phú</div>
             <div className="subtitle">
               {mode === "online"
-                ? "Chế độ Trực tuyến"
+                ? (roomInfo?.presentationMode ? "Chế độ Thuyết trình" : "Chế độ Trực tuyến")
                 : "Chế độ Tại máy (Offline)"}
             </div>
 
@@ -638,85 +718,111 @@ export default function App() {
 
                   <div className="center-msg">Lượt của <strong style={{ color: "#fff" }}>{activePlayer.name}</strong></div>
 
-                  {state.roll && displayRoll && (
-                    <div className="dice-readout" style={{ justifyContent: "center", marginBottom: 16 }}>
-                      <div className={`dice-pair ${isRolling ? "rolling" : ""}`}>
-                        <DiceFace value={displayRoll.die1} />
-                        <DiceFace value={displayRoll.die2} />
-                      </div>
-                    </div>
-                  )}
+                  {(() => {
+                    const isPresenter = mode === "online" && roomInfo?.presentationMode && youId === roomInfo.hostId;
+                    const isSpectator = mode === "online" && roomInfo?.presentationMode && youId !== roomInfo.hostId;
+                    const canControl = mode === "local" || !roomInfo?.presentationMode || isPresenter;
 
-                  <div className="button-row" style={{ width: "auto" }}>
-                    {state.phase === "await_roll" && (
-                      <button className="primary center-btn" onClick={() => dispatchAction({ type: "ROLL" })}>Đổ xúc xắc</button>
-                    )}
-                    {state.phase === "post_roll" && (
-                      <button className="primary center-btn" onClick={() => dispatchAction({ type: "END_TURN" })}>Kết thúc lượt</button>
-                    )}
-                    {canRollAgain && (
-                      <button className="primary center-btn" onClick={() => dispatchAction({ type: "ROLL" })}>Đổ lại</button>
-                    )}
-                  </div>
+                    if (!canControl) {
+                      return <div className="center-msg" style={{ marginTop: 20, color: "var(--accent)" }}>Đang ở chế độ khán giả</div>;
+                    }
 
-                  {state.phase === "buy_decision" && state.pending?.squareId !== undefined && (
-                    <div className="decision-box" style={{ background: "rgba(30, 27, 41, 0.95)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(8px)", color: "#fff" }}>
-                      <div className="decision-title">Mua {BOARD[state.pending.squareId].name}?</div>
-                      <div className="decision-actions">
-                        <button className="primary" onClick={() => dispatchAction({ type: "BUY" })}>Mua</button>
-                        <button className="ghost" onClick={() => dispatchAction({ type: "DECLINE_BUY" })}>Bỏ qua</button>
-                      </div>
-                    </div>
-                  )}
+                    return (
+                      <>
+                        {state.roll && displayRoll && (
+                          <div className="dice-readout" style={{ justifyContent: "center", marginBottom: 16 }}>
+                            <div className={`dice-pair ${isRolling ? "rolling" : ""}`}>
+                              <DiceFace value={displayRoll.die1} />
+                              <DiceFace value={displayRoll.die2} />
+                            </div>
+                          </div>
+                        )}
 
-                  {state.phase === "upgrade_decision" && state.pending?.squareId !== undefined && (
-                    <div className="decision-box" style={{ background: "rgba(30, 27, 41, 0.95)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(8px)", color: "#fff" }}>
-                      <div className="decision-title">Nâng cấp {BOARD[state.pending.squareId].name}?</div>
-                      <div className="player-meta">Giá: <strong>{formatMoney(BOARD[state.pending.squareId].houseCost)}</strong></div>
-                      <div className="decision-actions">
-                        <button className="primary" onClick={() => dispatchAction({ type: "UPGRADE_CONFIRM" })}>Nâng cấp</button>
-                        <button className="ghost" onClick={() => dispatchAction({ type: "UPGRADE_DECLINE" })}>Bỏ qua</button>
-                      </div>
-                    </div>
-                  )}
-
-                  {state.phase === "auction" && state.pending && (
-                    <div className="decision-box" style={{ background: "rgba(30, 27, 41, 0.95)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(8px)", color: "#fff", minWidth: 280 }}>
-                      <div className="decision-title">Đấu giá: {BOARD[state.pending.squareId].name}</div>
-                      <div className="player-meta">Giá cao nhất: <strong style={{ color: "#4f4" }}>{formatMoney(state.pending.highestBid)}</strong></div>
-                      <div className="player-meta">Người giữ giá: <strong>{state.pending.highestBidderId !== null ? state.players[state.pending.highestBidderId].name : "Chưa có"}</strong></div>
-                      <div className="player-meta" style={{ marginTop: 8, color: "var(--accent)" }}>Đến lượt: <strong>{state.players[state.pending.activeBidderId].name}</strong></div>
-
-                      <div className="decision-actions" style={{ marginTop: 12, flexDirection: "column" }}>
-                        <div style={{ display: 'flex', gap: 8, width: '100%', justifyContent: 'center' }}>
-                          <input
-                            className="input"
-                            type="number"
-                            placeholder="Giá"
-                            style={{ width: 100, textAlign: "center" }}
-                            value={auctionBid}
-                            onChange={(e) => setAuctionBid(Number(e.target.value))}
-                          />
-                          <button className="primary" onClick={() => dispatchAction({ type: "AUCTION_BID", payload: { bid: auctionBid } })}>Ra giá</button>
+                        <div className="button-row" style={{ width: "auto" }}>
+                          {state.phase === "await_roll" && (
+                            <button className="primary center-btn" onClick={() => dispatchAction({ type: "ROLL" })}>Đổ xúc xắc</button>
+                          )}
+                          {state.phase === "post_roll" && (
+                            <button className="primary center-btn" onClick={() => dispatchAction({ type: "END_TURN" })}>Kết thúc lượt</button>
+                          )}
                         </div>
-                        <button className="ghost" style={{ width: '100%' }} onClick={() => dispatchAction({ type: "AUCTION_PASS" })}>Bỏ lượt đấu giá</button>
-                      </div>
-                    </div>
-                  )}
 
-                  {state.phase === "jail_choice" && activePlayer && (
-                    <div className="decision-box" style={{ background: "rgba(30, 27, 41, 0.95)", color: "#fff", border: "1px solid rgba(255,255,255,0.1)" }}>
-                      <div className="decision-title">Trong tù</div>
-                      <div className="decision-actions" style={{ flexDirection: "column" }}>
-                        <button className="primary" onClick={() => dispatchAction({ type: "JAIL_ROLL" })}>Đổ đôi</button>
-                        <button className="ghost" onClick={() => dispatchAction({ type: "JAIL_PAY" })}>Nộp $50</button>
-                      </div>
-                    </div>
-                  )}
+                        {state.phase === "buy_decision" && state.pending?.squareId !== undefined && (
+                          <div className="decision-box" style={{ background: "rgba(30, 27, 41, 0.95)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(8px)", color: "#fff" }}>
+                            <div className="decision-title">Mua {BOARD[state.pending.squareId].name}?</div>
+                            <div className="decision-actions">
+                              <button className="primary" onClick={() => dispatchAction({ type: "BUY" })}>Mua</button>
+                              <button className="ghost" onClick={() => dispatchAction({ type: "DECLINE_BUY" })}>Bỏ qua</button>
+                            </div>
+                          </div>
+                        )}
 
-                  {activePlayer && activePlayer.inJail && state.phase === "await_roll" && (
-                    <div className="player-meta">Đang ở tù.</div>
-                  )}
+                        {state.phase === "buy_back_decision" && state.pending?.squareId !== undefined && (
+                          <div className="decision-box" style={{ background: "rgba(30, 27, 41, 0.95)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(8px)", color: "#fff", minWidth: 320 }}>
+                            <div className="decision-title">Mua lại {BOARD[state.pending.squareId].name}?</div>
+                            <div className="player-meta" style={{ marginBottom: 8 }}>
+                              Giá mua lại: <strong style={{ color: "#4f4" }}>{formatMoney(state.pending.buyBackCost)}</strong><br />
+                              (Tiền thuê: {formatMoney(state.pending.rent)})
+                            </div>
+                            <div className="decision-actions" style={{ flexDirection: "column" }}>
+                              <button className="primary" onClick={() => dispatchAction({ type: "BUY_OWNED_PROPERTY" })}>Mua lại</button>
+                              <button className="ghost" onClick={() => dispatchAction({ type: "DECLINE_BUY_OWNED_PROPERTY" })}>Chỉ trả thuê ({formatMoney(state.pending.rent)})</button>
+                            </div>
+                          </div>
+                        )}
+
+                        {state.phase === "upgrade_decision" && state.pending?.squareId !== undefined && (
+                          <div className="decision-box" style={{ background: "rgba(30, 27, 41, 0.95)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(8px)", color: "#fff" }}>
+                            <div className="decision-title">Nâng cấp {BOARD[state.pending.squareId].name}?</div>
+                            <div className="player-meta">Giá: <strong>{formatMoney(BOARD[state.pending.squareId].houseCost)}</strong></div>
+                            <div className="decision-actions">
+                              <button className="primary" onClick={() => dispatchAction({ type: "UPGRADE_CONFIRM" })}>Nâng cấp</button>
+                              <button className="ghost" onClick={() => dispatchAction({ type: "UPGRADE_DECLINE" })}>Bỏ qua</button>
+                            </div>
+                          </div>
+                        )}
+
+                        {state.phase === "auction" && state.pending && (
+                          <div className="decision-box" style={{ background: "rgba(30, 27, 41, 0.95)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(8px)", color: "#fff", minWidth: 280 }}>
+                            <div className="decision-title">Đấu giá: {BOARD[state.pending.squareId].name}</div>
+                            <div className="player-meta">Giá cao nhất: <strong style={{ color: "#4f4" }}>{formatMoney(state.pending.highestBid)}</strong></div>
+                            <div className="player-meta">Người giữ giá: <strong>{state.pending.highestBidderId !== null ? state.players[state.pending.highestBidderId].name : "Chưa có"}</strong></div>
+                            <div className="player-meta" style={{ marginTop: 8, color: "var(--accent)" }}>Đến lượt: <strong>{state.players[state.pending.activeBidderId].name}</strong></div>
+
+                            <div className="decision-actions" style={{ marginTop: 12, flexDirection: "column" }}>
+                              <div style={{ display: 'flex', gap: 8, width: '100%', justifyContent: 'center' }}>
+                                <input
+                                  className="input"
+                                  type="number"
+                                  placeholder="Giá"
+                                  style={{ width: 100, textAlign: "center" }}
+                                  value={auctionBid}
+                                  onChange={(e) => setAuctionBid(Number(e.target.value))}
+                                />
+                                <button className="primary" onClick={() => dispatchAction({ type: "AUCTION_BID", payload: { bid: auctionBid } })}>Ra giá</button>
+                              </div>
+                              <button className="ghost" style={{ width: '100%' }} onClick={() => dispatchAction({ type: "AUCTION_PASS" })}>Bỏ lượt đấu giá</button>
+                            </div>
+                          </div>
+                        )}
+
+                        {state.phase === "jail_choice" && activePlayer && (
+                          <div className="decision-box" style={{ background: "rgba(30, 27, 41, 0.95)", color: "#fff", border: "1px solid rgba(255,255,255,0.1)" }}>
+                            <div className="decision-title">Trong tù</div>
+                            <div className="decision-actions" style={{ flexDirection: "column" }}>
+                              <button className="primary" onClick={() => dispatchAction({ type: "JAIL_ROLL" })}>Đổ đôi</button>
+                              <button className="ghost" onClick={() => dispatchAction({ type: "JAIL_PAY" })}>Nộp $50</button>
+                            </div>
+                          </div>
+                        )}
+
+                        {activePlayer && activePlayer.inJail && state.phase === "await_roll" && (
+                          <div className="player-meta">Đang ở tù.</div>
+                        )}
+
+                      </>
+                    );
+                  })()}
                 </div>
               ) : (
                 <div className="center-controls">
@@ -1267,14 +1373,19 @@ export default function App() {
                 )}
                 <div className="decision-actions">
                   {youId === roomInfo.hostId ? (
-                    <button
-                      className="primary"
-                      onClick={startOnlineGame}
-                      disabled={roomInfo.players.length < 2}
-                      style={{ opacity: roomInfo.players.length < 2 ? 0.5 : 1, cursor: roomInfo.players.length < 2 ? 'not-allowed' : 'pointer' }}
-                    >
-                      {roomInfo.players.length < 2 ? "Chờ người chơi..." : "Bắt đầu ván"}
-                    </button>
+                    (() => {
+                      const canStart = roomInfo.presentationMode || roomInfo.players.length >= 2;
+                      return (
+                        <button
+                          className="primary"
+                          onClick={startOnlineGame}
+                          disabled={!canStart}
+                          style={{ opacity: !canStart ? 0.5 : 1, cursor: !canStart ? 'not-allowed' : 'pointer' }}
+                        >
+                          {canStart ? "Bắt đầu ván" : "Chờ người chơi..."}
+                        </button>
+                      );
+                    })()
                   ) : (
                     <div className="player-meta">Đang chờ chủ phòng bắt đầu...</div>
                   )}

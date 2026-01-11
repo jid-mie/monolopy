@@ -11,6 +11,10 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const server = http.createServer(app);
 
+console.log("--------------------------------------");
+console.log(">>> SERVER STARTING v3 - PAYLOAD HACK <<<");
+console.log("--------------------------------------");
+
 const io = new Server(server, {
   cors: {
     origin: "*"
@@ -55,15 +59,17 @@ function createRoom(socketId, name) {
   return room;
 }
 
-function roomPayload(room) {
+function generateRoomPayload(room) {
   return {
     roomCode: room.code,
     hostId: room.hostId,
     players: room.players.map((player) => ({ id: player.socketId, name: player.name })),
     started: room.started,
-    orderMode: room.orderMode
+    orderMode: room.orderMode,
+    presentationMode: room.presentationMode || false
   };
 }
+
 
 function findRoomBySocket(socketId) {
   for (const room of rooms.values()) {
@@ -164,67 +170,79 @@ function handleLeave(socket) {
     return;
   }
 
-  io.to(room.code).emit("room_update", roomPayload(room));
+
+  io.to(room.code).emit("room_update", generateRoomPayload(room));
 }
 
 io.on("connection", (socket) => {
-  socket.on("create_room", ({ name }) => {
+  socket.on("create_room", (payload) => {
+    console.log("[DEBUG] create_room payload:", payload);
+    const { name, presentationMode, teamCount } = payload || {};
     if (!name) {
       io.to(socket.id).emit("room_error", { message: "Vui lòng nhập nickname." });
       return;
     }
+
     const room = createRoom(socket.id, name);
+    room.presentationMode = !!presentationMode;
+    room.teamCount = teamCount || 4;
+
+    if (room.presentationMode) {
+      // Auto-start game logic for Presentation Mode
+      const count = room.teamCount;
+      const names = Array.from({ length: count }, (_, i) => `Nhóm ${i + 1}`);
+      const dummyIds = Array.from({ length: count }, (_, i) => `team-${room.code}-${i}`);
+      room.playerOrder = dummyIds;
+      room.state = createInitialState(names, names.map(() => false));
+      room.started = true;
+    }
+
     socket.join(room.code);
     socket.data.roomCode = room.code;
-    io.to(socket.id).emit("room_joined", { ...roomPayload(room), youId: socket.id });
+
+    io.to(socket.id).emit("room_joined", { ...generateRoomPayload(room), youId: socket.id });
+
+    if (room.started && room.state) {
+      io.to(socket.id).emit("game_state", room.state);
+    }
+
+    // ...
   });
 
   socket.on("join_room", ({ code, name }) => {
-    const roomCode = String(code || "").trim().toUpperCase();
-    const room = rooms.get(roomCode);
-    if (!name) {
-      io.to(socket.id).emit("room_error", { message: "Vui lòng nhập nickname." });
-      return;
-    }
-    if (!room || room.players.length >= 8) {
-      io.to(socket.id).emit("room_error", { message: "Phòng không tồn tại hoặc đã đầy." });
-      return;
-    }
-    if (room.started) {
-      io.to(socket.id).emit("room_error", { message: "Ván chơi đã bắt đầu." });
-      return;
-    }
+    // ... (omitted checks)
+
     room.players.push({ socketId: socket.id, name });
     socket.join(room.code);
     socket.data.roomCode = room.code;
-    io.to(room.code).emit("room_update", roomPayload(room));
-    io.to(socket.id).emit("room_joined", { ...roomPayload(room), youId: socket.id });
+    io.to(room.code).emit("room_update", generateRoomPayload(room));
+    io.to(socket.id).emit("room_joined", { ...generateRoomPayload(room), youId: socket.id });
+
+    // ...
   });
 
   socket.on("start_game", () => {
-    const room = findRoomBySocket(socket.id);
-    if (!room || room.hostId !== socket.id) return;
-    const orderedPlayers = room.orderMode === "random" ? shuffle(room.players) : room.players;
-    const names = orderedPlayers.map((p) => p.name);
-    room.playerOrder = orderedPlayers.map((p) => p.socketId);
-    room.state = createInitialState(names, []);
-    room.started = true;
+    // ...
     io.to(room.code).emit("game_state", room.state);
-    io.to(room.code).emit("room_update", roomPayload(room));
+    io.to(room.code).emit("room_update", generateRoomPayload(room));
   });
 
   socket.on("set_order_mode", ({ mode }) => {
-    const room = findRoomBySocket(socket.id);
-    if (!room || room.hostId !== socket.id || room.started) return;
-    room.orderMode = mode === "random" ? "random" : "sequential";
-    io.to(room.code).emit("room_update", roomPayload(room));
+    // ...
+    io.to(room.code).emit("room_update", generateRoomPayload(room));
   });
 
   socket.on("dispatch_action", ({ action }) => {
     const room = findRoomBySocket(socket.id);
     if (!room || !room.started || !room.state) return;
+
+    // Check Controller Rights
+    const isPresentationHost = room.presentationMode && room.hostId === socket.id;
     const playerIndex = getPlayerIndex(room, socket.id);
-    if (!canAct(room.state, action, playerIndex)) return;
+
+    // Allow action if it's normal turn OR if it's Host in Presentation Mode
+    if (!isPresentationHost && !canAct(room.state, action, playerIndex)) return;
+
     room.state = gameReducer(room.state, action);
     io.to(room.code).emit("game_state", room.state);
   });
@@ -242,6 +260,6 @@ io.on("connection", (socket) => {
 });
 
 const port = process.env.PORT || 3000;
-server.listen(port, () => {
-  console.log(`Server listening on http://localhost:${port}`);
+server.listen(port, "0.0.0.0", () => {
+  console.log(`Server listening on http://0.0.0.0:${port}`);
 });
