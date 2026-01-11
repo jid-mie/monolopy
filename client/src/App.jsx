@@ -718,7 +718,14 @@ export default function App() {
                   }
                 `}</style>
 
-                  <div className="center-msg">Lượt của <strong style={{ color: "#fff" }}>{activePlayer.name}</strong></div>
+                  <div className="center-msg">
+                    Lượt của <strong style={{
+                      color: playerColors[state.activePlayerIndex % playerColors.length],
+                      textShadow: `0 0 12px ${playerColors[state.activePlayerIndex % playerColors.length]}`
+                    }}>
+                      {activePlayer.name}
+                    </strong>
+                  </div>
 
                   {(() => {
                     const isPresenter = mode === "online" && roomInfo?.presentationMode && youId === roomInfo.hostId;
