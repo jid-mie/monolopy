@@ -291,6 +291,27 @@ export function gameReducer(state, action) {
 
   const activeId = state.activePlayerIndex;
 
+  if (action.type === "DEBUG_MOVE") {
+    const { targetId } = action.payload;
+    if (typeof targetId !== 'number') return state;
+
+    // Move current player to targetId
+    let nextState = movePlayer(state, activeId, 0); // Reset? No, just set pos.
+    // Actually movePlayer adds offset. We need to set absolute position.
+    // Let's manually set it.
+    nextState = {
+      ...nextState,
+      players: nextState.players.map((p, i) =>
+        i === activeId ? { ...p, position: targetId } : p
+      ),
+      roll: { total: 0, isDouble: false, dice: [0, 0] } // Fake roll
+    };
+
+    // Resolve landing at new position
+    nextState = resolveLanding(nextState, activeId, 0);
+    return nextState;
+  }
+
   if (action.type === "ROLL") {
     if (state.phase !== "await_roll") return state;
     const roll = rollDice();
