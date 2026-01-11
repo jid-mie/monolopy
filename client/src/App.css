@@ -1261,3 +1261,119 @@
   pointer-events: auto !important;
   z-index: 500 !important;
 }
+/* RESPONSIVE DESIGN FOR MOBILE */
+@media (max-width: 900px) {
+  .app-shell {
+    padding: 10px;
+    gap: 12px;
+    height: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .main-grid {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    gap: 16px;
+  }
+
+  /* Order: Board (1), Right Panel/Players (2), Left Panel/Logs (3) */
+  .board-panel {
+    order: 1;
+    width: 100%;
+    height: auto;
+    padding: 0;
+    max-width: 100vw;
+    aspect-ratio: 1/1;
+    margin: 0 auto;
+  }
+
+  .board-grid {
+    max-width: 100%;
+    /* Ensure squares don't break */
+    gap: 1.5px; /* Reduce gap on mobile */
+  }
+
+  .right-panel {
+    order: 2;
+    width: 100%;
+    max-height: 400px; /* Scrollable if too many players */
+  }
+
+  .left-panel {
+    order: 3;
+    width: 100%;
+  }
+
+  .top-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .header-actions {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  /* Board Internals Scaling */
+  .board-square .square-name,
+  .board-square .square-price {
+    font-size: 7px; /* Very small text */
+    line-height: 1;
+  }
+  
+  .square-icon {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .player-chip {
+    width: 16px;
+    height: 16px;
+    font-size: 9px;
+    border-width: 1px;
+  }
+
+  /* Center Controls - Make them visible */
+  .board-center-content {
+    width: 80%;
+    height: 80%;
+    inset: 10%;
+    /* Scale down slightly to avoid overlap */
+  }
+  
+  .dice-face {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .primary, .ghost {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  /* Adjust Token Grid on Squares */
+  .board-square .tokens-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    padding: 1px;
+  }
+  
+  /* Log Panel Height Limit */
+  .log-panel ul {
+    max-height: 150px;
+  }
+
+  /* Welcome Screen */
+  .welcome-screen {
+    width: 95%;
+    padding: 16px;
+  }
+  
+  .join-mode-row {
+    flex-direction: column;
+  }
+}
