@@ -650,29 +650,114 @@ export default function App() {
               </ul>
             </div>
 
-            <div className="panel card">
-              <h2>Người chơi</h2>
-              {activePlayer ? (
-                <div className="property-groups" style={{ maxHeight: "200px", overflowY: "auto" }}>
-                  {Object.keys(ownedGroups).length === 0 && (
-                    <div className="player-meta">Trống.</div>
-                  )}
-                  {Object.entries(ownedGroups).map(([group, squares]) => (
-                    <div key={group} className="group-block" style={{ background: "rgba(255,255,255,0.03)", border: "none" }}>
-                      <div className="group-title" style={{ fontSize: 11, color: "var(--muted)" }}>{groupLabels[group] || group}</div>
-                      {squares.map((square) => (
-                        <div key={square.id} className="property-row" style={{ border: "none", padding: "2px 0" }}>
-                          <div className="property-name" style={{ fontSize: 12 }}>{square.name}</div>
-                          <button className="tiny" onClick={() => setSelectedSquareId(square.id)}>Xem</button>
+            {selectedSquare ? (
+              <div className="panel card">
+                <h2 style={{ borderBottom: `2px solid ${selectedSquare.color || "rgba(255,255,255,0.1)"}` }}>
+                  {selectedSquare.name}
+                </h2>
+                <div className="square-info-content">
+                  <div className="info-row">
+                    <span>Loại:</span>
+                    <strong>{typeLabels[selectedSquare.type] || selectedSquare.type}</strong>
+                  </div>
+
+                  {["property", "railroad", "utility"].includes(selectedSquare.type) && (
+                    <>
+                      {selectedSquare.price && (
+                        <div className="info-row">
+                          <span>Giá mua:</span>
+                          <strong>{formatMoney(selectedSquare.price)}</strong>
                         </div>
-                      ))}
+                      )}
+
+                      {selectedSquare.type === "property" && Array.isArray(selectedSquare.rent) && (
+                        <div className="rent-schedule" style={{ marginTop: 12, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 8 }}>
+                          <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 4 }}>Bảng giá thuê:</div>
+                          {selectedSquare.rent.map((r, idx) => (
+                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: idx === (squareInfo?.houses || 0) && squareInfo?.owner ? '#4f4' : 'inherit', fontWeight: idx === (squareInfo?.houses || 0) && squareInfo?.owner ? 'bold' : 'normal' }}>
+                              <span>{idx === 0 ? "Đất trống" : idx === 5 ? "Khách sạn" : `${idx} Nhà`}</span>
+                              <span>{formatMoney(r)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {selectedSquare.type !== "property" && squareInfo?.rent !== undefined && (
+                        <div className="info-row">
+                          <span>{selectedSquare.type === "utility" ? "Hệ số:" : "Tiền thuê:"}</span>
+                          <strong>{selectedSquare.type === "utility" ? `${squareInfo.rent}x` : formatMoney(squareInfo.rent)}</strong>
+                        </div>
+                      )}
+
+                      {selectedSquare.houseCost && (
+                        <div className="info-row" style={{ marginTop: 8 }}>
+                          <span>Giá nhà:</span>
+                          <strong>{formatMoney(selectedSquare.houseCost)}</strong>
+                        </div>
+                      )}
+                      <div className="info-row">
+                        <span>Chủ sở hữu:</span>
+                        <strong>{squareInfo?.owner || "Chưa có chủ"}</strong>
+                      </div>
+                      {squareInfo?.houses > 0 && selectedSquare.type !== "property" && (
+                        <div className="info-row">
+                          <span>Đã xây:</span>
+                          <strong>{squareInfo.houses === 5 ? "Khách sạn" : `${squareInfo.houses} Nhà`}</strong>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {selectedSquare.type === "tax" && (
+                    <div className="info-row">
+                      <span>Số tiền nộp:</span>
+                      <strong>{formatMoney(selectedSquare.amount || selectedSquare.price)}</strong>
                     </div>
-                  ))}
+                  )}
+
+                  {["chance", "chest", "challenge"].includes(selectedSquare.type) && (
+                    <div className="info-row" style={{ display: "block", paddingTop: 8 }}>
+                      <span style={{ display: "block", marginBottom: 4 }}>Mô tả:</span>
+                      <strong style={{ fontWeight: "normal", color: "#ddd" }}>
+                        {selectedSquare.type === "chance" && "Rút một thẻ Cơ Hội ngẫu nhiên."}
+                        {selectedSquare.type === "chest" && "Rút một thẻ Khí Vận ngẫu nhiên."}
+                        {selectedSquare.type === "challenge" && "Tham gia thử thách minigame để nhận thưởng hoặc chịu phạt."}
+                      </strong>
+                    </div>
+                  )}
+
+                  {selectedSquare.type === "go" && (
+                    <div className="info-row">
+                      <span>Thưởng:</span>
+                      <strong>Nhận $200 khi đi qua.</strong>
+                    </div>
+                  )}
+                  {selectedSquare.type === "jail" && (
+                    <div className="info-row" style={{ display: "block" }}>
+                      <span style={{ display: "block", marginBottom: 4 }}>Quy tắc:</span>
+                      <strong style={{ fontWeight: "normal", color: "#ddd" }}>Thăm tù (nếu đi vào) hoặc Ở tù (nếu bị bắt). Cần đổ đôi hoặc trả tiền để ra.</strong>
+                    </div>
+                  )}
+                  {selectedSquare.type === "free_parking" && (
+                    <div className="info-row">
+                      <span>Tác dụng:</span>
+                      <strong>Bãi đậu xe miễn phí. Không có gì xảy ra.</strong>
+                    </div>
+                  )}
+                  {selectedSquare.type === "go_to_jail" && (
+                    <div className="info-row">
+                      <span>Hành động:</span>
+                      <strong>Đi tù ngay lập tức!</strong>
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="player-meta">...</div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="panel card">
+                <h2>Chi tiết ô</h2>
+                <div className="player-meta">Chọn một ô trên bàn cờ để xem chi tiết.</div>
+              </div>
+            )}
           </section>
 
           {/* Center Column: Board */}
@@ -852,115 +937,7 @@ export default function App() {
 
           {/* Right Column: Game Controls & Info */}
           <section className="right-panel">
-            {selectedSquare && (
-              <div className="panel card">
-                <h2 style={{ borderBottom: `2px solid ${selectedSquare.color || "rgba(255,255,255,0.1)"}` }}>
-                  {selectedSquare.name}
-                </h2>
-                <div className="square-info-content">
-                  <div className="info-row">
-                    <span>Loại:</span>
-                    <strong>{typeLabels[selectedSquare.type] || selectedSquare.type}</strong>
-                  </div>
-
-                  {/* Properties, Railroads, Utilities */}
-                  {["property", "railroad", "utility"].includes(selectedSquare.type) && (
-                    <>
-                      {selectedSquare.price && (
-                        <div className="info-row">
-                          <span>Giá mua:</span>
-                          <strong>{formatMoney(selectedSquare.price)}</strong>
-                        </div>
-                      )}
-
-                      {/* Rent Schedule for Properties */}
-                      {selectedSquare.type === "property" && Array.isArray(selectedSquare.rent) && (
-                        <div className="rent-schedule" style={{ marginTop: 12, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 8 }}>
-                          <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 4 }}>Bảng giá thuê:</div>
-                          {selectedSquare.rent.map((r, idx) => (
-                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: idx === (squareInfo?.houses || 0) && squareInfo?.owner ? '#4f4' : 'inherit', fontWeight: idx === (squareInfo?.houses || 0) && squareInfo?.owner ? 'bold' : 'normal' }}>
-                              <span>{idx === 0 ? "Đất trống" : idx === 5 ? "Khách sạn" : `${idx} Nhà`}</span>
-                              <span>{formatMoney(r)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Fallback for non-properties */}
-                      {selectedSquare.type !== "property" && squareInfo?.rent !== undefined && (
-                        <div className="info-row">
-                          <span>{selectedSquare.type === "utility" ? "Hệ số:" : "Tiền thuê:"}</span>
-                          <strong>{selectedSquare.type === "utility" ? `${squareInfo.rent}x` : formatMoney(squareInfo.rent)}</strong>
-                        </div>
-                      )}
-
-                      {selectedSquare.houseCost && (
-                        <div className="info-row" style={{ marginTop: 8 }}>
-                          <span>Giá nhà:</span>
-                          <strong>{formatMoney(selectedSquare.houseCost)}</strong>
-                        </div>
-                      )}
-                      <div className="info-row">
-                        <span>Chủ sở hữu:</span>
-                        <strong>{squareInfo?.owner || "Chưa có chủ"}</strong>
-                      </div>
-                      {squareInfo?.houses > 0 && selectedSquare.type !== "property" && (
-                        <div className="info-row">
-                          <span>Đã xây:</span>
-                          <strong>{squareInfo.houses === 5 ? "Khách sạn" : `${squareInfo.houses} Nhà`}</strong>
-                        </div>
-                      )}
-                    </>
-                  )}
-
-                  {/* Tax */}
-                  {selectedSquare.type === "tax" && (
-                    <div className="info-row">
-                      <span>Số tiền nộp:</span>
-                      <strong>{formatMoney(selectedSquare.amount || selectedSquare.price)}</strong>
-                    </div>
-                  )}
-
-                  {/* Chance / Chest / Challenge */}
-                  {["chance", "chest", "challenge"].includes(selectedSquare.type) && (
-                    <div className="info-row" style={{ display: "block", paddingTop: 8 }}>
-                      <span style={{ display: "block", marginBottom: 4 }}>Mô tả:</span>
-                      <strong style={{ fontWeight: "normal", color: "#ddd" }}>
-                        {selectedSquare.type === "chance" && "Rút một thẻ Cơ Hội ngẫu nhiên."}
-                        {selectedSquare.type === "chest" && "Rút một thẻ Khí Vận ngẫu nhiên."}
-                        {selectedSquare.type === "challenge" && "Tham gia thử thách minigame để nhận thưởng hoặc chịu phạt."}
-                      </strong>
-                    </div>
-                  )}
-
-                  {/* Special Squares */}
-                  {selectedSquare.type === "go" && (
-                    <div className="info-row">
-                      <span>Thưởng:</span>
-                      <strong>Nhận $200 khi đi qua.</strong>
-                    </div>
-                  )}
-                  {selectedSquare.type === "jail" && (
-                    <div className="info-row" style={{ display: "block" }}>
-                      <span style={{ display: "block", marginBottom: 4 }}>Quy tắc:</span>
-                      <strong style={{ fontWeight: "normal", color: "#ddd" }}>Thăm tù (nếu đi vào) hoặc Ở tù (nếu bị bắt). Cần đổ đôi hoặc trả tiền để ra.</strong>
-                    </div>
-                  )}
-                  {selectedSquare.type === "free_parking" && (
-                    <div className="info-row">
-                      <span>Tác dụng:</span>
-                      <strong>Bãi đậu xe miễn phí. Không có gì xảy ra.</strong>
-                    </div>
-                  )}
-                  {selectedSquare.type === "go_to_jail" && (
-                    <div className="info-row">
-                      <span>Hành động:</span>
-                      <strong>Đi tù ngay lập tức!</strong>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            {/* Selected Square Info Moved to Left Panel */}
 
             <div className="panel card" style={{ maxHeight: "40%", display: 'flex', flexDirection: 'column', overflow: "hidden" }}>
               <h2 style={{ margin: "0 0 12px 0", flexShrink: 0 }}>Tài chính</h2>
