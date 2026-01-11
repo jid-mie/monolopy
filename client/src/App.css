@@ -508,6 +508,37 @@
   padding: 2px;
 }
 
+/* Highlight special squares */
+.board-cell.type-chance,
+.board-cell.type-chest,
+.board-cell.type-challenge,
+.board-cell.type-tax,
+.board-cell.type-go_to_jail,
+.board-cell.type-jail,
+.board-cell.type-free_parking {
+  box-shadow: 0 0 12px 4px rgba(255, 215, 0, 0.6);
+  border: 2px solid var(--accent);
+  animation: pulseGlow 2s infinite;
+}
+
+@keyframes pulseGlow {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+
+  50% {
+    transform: scale(1.03);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+}
+
+
 .board-square:hover {
   transform: translateY(-4px) scale(1.1);
   z-index: 50;
@@ -1261,6 +1292,7 @@
   pointer-events: auto !important;
   z-index: 500 !important;
 }
+
 /* RESPONSIVE DESIGN FOR MOBILE */
 @media (max-width: 900px) {
   .app-shell {
@@ -1292,13 +1324,15 @@
   .board-grid {
     max-width: 100%;
     /* Ensure squares don't break */
-    gap: 1.5px; /* Reduce gap on mobile */
+    gap: 1.5px;
+    /* Reduce gap on mobile */
   }
 
   .right-panel {
     order: 2;
     width: 100%;
-    max-height: 400px; /* Scrollable if too many players */
+    max-height: 400px;
+    /* Scrollable if too many players */
   }
 
   .left-panel {
@@ -1311,7 +1345,7 @@
     align-items: flex-start;
     gap: 10px;
   }
-  
+
   .header-actions {
     width: 100%;
     display: flex;
@@ -1321,15 +1355,16 @@
   /* Board Internals Scaling */
   .board-square .square-name,
   .board-square .square-price {
-    font-size: 7px; /* Very small text */
+    font-size: 7px;
+    /* Very small text */
     line-height: 1;
   }
-  
+
   .square-icon {
     width: 12px;
     height: 12px;
   }
-  
+
   .player-chip {
     width: 16px;
     height: 16px;
@@ -1344,13 +1379,14 @@
     inset: 10%;
     /* Scale down slightly to avoid overlap */
   }
-  
+
   .dice-face {
     width: 35px;
     height: 35px;
   }
-  
-  .primary, .ghost {
+
+  .primary,
+  .ghost {
     padding: 8px 12px;
     font-size: 13px;
   }
@@ -1361,7 +1397,7 @@
     gap: 1px;
     padding: 1px;
   }
-  
+
   /* Log Panel Height Limit */
   .log-panel ul {
     max-height: 150px;
@@ -1372,7 +1408,7 @@
     width: 95%;
     padding: 16px;
   }
-  
+
   .join-mode-row {
     flex-direction: column;
   }

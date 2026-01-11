@@ -16,10 +16,13 @@ console.log(">>> SERVER STARTING v3 - PAYLOAD HACK <<<");
 console.log("--------------------------------------");
 
 const io = new Server(server, {
-  cors: {
-    origin: "*"
-  }
+  cors: { origin: "*" },
+  pingInterval: 10000, // 10s
+  pingTimeout: 5000   // 5s
 });
+
+// Increase EventEmitter listener limit to avoid warnings in high‑player rooms
+require('events').EventEmitter.defaultMaxListeners = 1000;
 
 const clientDist = path.resolve(__dirname, "..", "client", "dist");
 
@@ -219,7 +222,7 @@ io.on("connection", (socket) => {
       io.to(socket.id).emit("room_error", { message: "Phòng không tồn tại." });
       return;
     }
-    if (room.players.length >= 8) {
+    if (room.players.length >= 60) {
       io.to(socket.id).emit("room_error", { message: "Phòng đã đầy." });
       return;
     }

@@ -1432,6 +1432,9 @@ export default function App() {
           <div className="modal-card" style={{ maxWidth: 800, textAlign: 'left' }}>
             <h1 style={{ textAlign: 'center', color: '#64ffda', marginBottom: 20 }}>HƯỚNG DẪN & LUẬT CHƠI</h1>
 
+            <div style={{ marginBottom: 12, color: '#fff', fontSize: '0.9rem' }}>
+              💰 Tiền khởi điểm cho mỗi nhóm: <strong>$1250</strong>
+            </div>
             <div style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: 10, fontSize: '0.95rem', lineHeight: 1.6 }}>
               <h3 style={{ color: '#fff', borderBottom: '1px solid #ffffff33', paddingBottom: 5 }}>1. Cách sử dụng Web</h3>
               <ul style={{ marginBottom: 20, paddingLeft: 20 }}>
