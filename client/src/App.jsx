@@ -1125,10 +1125,6 @@ export default function App() {
               {state.pending.text}
             </div>
 
-            <div className="player-meta" style={{ marginBottom: '24px' }}>
-              Phí phạt tiền mặt: <strong style={{ color: '#ff4444' }}>${state.pending.amount}</strong>
-            </div>
-
             <button
               className="primary"
               style={{
@@ -1140,7 +1136,7 @@ export default function App() {
               }}
               onClick={() => dispatchAction({ type: "PENALTY_OK" })}
             >
-              ĐÃ THỰC HIỆN / NỘP PHẠT
+              ĐÃ THỰC HIỆN
             </button>
           </div>
         </div>

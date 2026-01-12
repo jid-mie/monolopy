@@ -918,19 +918,15 @@ export function gameReducer(state, action) {
   if (action.type === "PENALTY_OK") {
     if (state.phase !== "penalty" || state.pending?.type !== "penalty") return state;
 
-    // Deduct money (if desired, based on board data)
-    const amount = state.pending.amount || 0;
-    const nextState = updatePlayer(state, activeId, (player) => ({
-      ...player,
-      cash: player.cash - amount
-    }));
+    // NO MONEY DEDUCTION !!!
+    // Just log and move on.
 
     const description = state.pending.text;
     return logWithLimit({
-      ...nextState,
+      ...state,
       phase: "post_roll",
       pending: null
-    }, `${state.players[activeId].name} chấp nhận hình phạt: "${description}" và nộp phạt $${amount}.`);
+    }, `${state.players[activeId].name} chấp nhận hình phạt: "${description}".`);
   }
 
   return state;
