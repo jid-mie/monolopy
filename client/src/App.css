@@ -1735,3 +1735,16 @@
 .board-grid {
   contain: layout style;
 }
+
+/* Pulse Animation for Critical Buttons */
+@keyframes btn-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); }
+  70% { box-shadow: 0 0 0 15px rgba(99, 102, 241, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}
+
+.pulse-btn {
+  animation: btn-pulse 1.5s infinite;
+  background: linear-gradient(135deg, #ef4444 0%, #f43f5e 100%) !important; /* Đổi màu đỏ cho nút kết thúc để dễ thấy */
+  border: 2px solid #fff !important;
+}

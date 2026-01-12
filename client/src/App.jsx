@@ -953,7 +953,12 @@ export default function App() {
                               <button className="primary center-btn" onClick={() => dispatchAction({ type: "ROLL" })}>Đổ xúc xắc</button>
                             )}
                             {state.phase === "post_roll" && (
-                              <button className="primary center-btn" onClick={() => dispatchAction({ type: "END_TURN" })}>Kết thúc lượt</button>
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, width: '100%' }}>
+                                <div style={{ color: 'var(--accent)', fontSize: '0.9rem', fontWeight: 600, animation: 'fadeIn 0.5s' }}>Hoàn thành lượt đi</div>
+                                <button className="primary center-btn pulse-btn" onClick={() => dispatchAction({ type: "END_TURN" })}>
+                                  Kết thúc lượt ➜
+                                </button>
+                              </div>
                             )}
                           </div>
                         )}
@@ -1562,43 +1567,89 @@ export default function App() {
       {
         showIntro && (
           <div className="modal-backdrop" style={{ zIndex: 9999 }}>
-            <div className="modal-card" style={{ maxWidth: 800, textAlign: 'left', background: 'rgba(255,255,255,0.98)' }}>
-              <h1 style={{ textAlign: 'center', color: '#6366f1', marginBottom: 20 }}>HƯỚNG DẪN & LUẬT CHƠI</h1>
+            <div className="modal-card" style={{ maxWidth: 800, textAlign: 'left', background: 'rgba(255,255,255,0.98)', borderRadius: 24, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
+              <h1 style={{ textAlign: 'center', background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)', backgroundClip: 'text', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 24, fontSize: '2.5rem' }}>Hướng Dẫn & Luật Chơi</h1>
 
-              <div style={{ marginBottom: 12, color: '#334155', fontSize: '0.9rem' }}>
-                💰 Tiền khởi điểm cho mỗi nhóm: <strong>$1250</strong>
-              </div>
-              <div style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: 10, fontSize: '0.95rem', lineHeight: 1.6, color: '#334155' }}>
-                <h3 style={{ color: '#1e293b', borderBottom: '1px solid #e2e8f0', paddingBottom: 5 }}>1. Cách sử dụng Web</h3>
-                <ul style={{ marginBottom: 20, paddingLeft: 20 }}>
-                  <li style={{ marginBottom: 8 }}><strong>Bước 1:</strong> Nhập <strong>Tên hiển thị</strong> (Nickname).</li>
-                  <li style={{ marginBottom: 8 }}><strong>Bước 2:</strong>
-                    <ul style={{ marginTop: 4 }}>
-                      <li>Chọn <strong>Tạo phòng:</strong> Nếu bạn là Host. Tick vào <em>"Chế độ Thuyết trình"</em> để tự động tạo các nhóm (Nhóm 1, 3, 4...) nếu muốn chơi team trên lớp.</li>
-                      <li>Chọn <strong>Vào phòng:</strong> Nhập Mã phòng từ Host để tham gia.</li>
-                    </ul>
-                  </li>
-                  <li><strong>Lưu ý:</strong> Chế độ Thuyết trình dành cho lớp học/nhóm đông sử dụng chung một màn hình lớn.</li>
-                </ul>
-
-                <h3 style={{ color: '#1e293b', borderBottom: '1px solid #e2e8f0', paddingBottom: 5 }}>2. Luật chơi Đặc biệt</h3>
-                <ul style={{ paddingLeft: 20 }}>
-                  <li style={{ marginBottom: 6 }}><strong>Mục tiêu:</strong> Trở thành đại gia bất động sản cuối cùng chưa phá sản.</li>
-                  <li style={{ marginBottom: 6 }}><strong>Trả lời câu hỏi:</strong> Cơ hội nhận giảm giá <strong>20%</strong> khi mua đất hoặc miễn phạt nếu trả lời đúng câu hỏi kiến thức.</li>
-                  <li style={{ marginBottom: 6 }}><strong>Thị trường khốc liệt:</strong> Giá thuê nhà đất rất cao. Hãy cẩn thận khi đi vào đất đối thủ!</li>
-                  <li style={{ marginBottom: 6 }}><strong>Gỡ nợ:</strong> Nếu thiếu tiền, bạn có thể bán tài sản lại cho Ngân hàng với <strong>100% giá gốc</strong>.</li>
-                  <li style={{ marginBottom: 6 }}><strong>Nhà tù:</strong> Phí bảo lãnh <strong>$100</strong>. Sau 3 lượt không đổ được đôi, bạn bắt buộc phải đóng phạt để ra.</li>
-                  <li><strong>Hình phạt:</strong> Các ô Thuế là ô Hình phạt, mất tiền ngay lập tức.</li>
-                </ul>
+              <div style={{ marginBottom: 16, background: '#f8fafc', padding: 16, borderRadius: 12, border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontSize: '2rem' }}>💰</span>
+                <div>
+                  <div style={{ fontWeight: 700, color: '#475569' }}>Ngân sách khởi điểm</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#10b981' }}>$1,250</div>
+                </div>
               </div>
 
-              <div style={{ marginTop: 24, textAlign: 'center' }}>
+              <div style={{ maxHeight: '55vh', overflowY: 'auto', paddingRight: 10, fontSize: '1rem', lineHeight: 1.6, color: '#334155' }}>
+                <div style={{ marginBottom: 24 }}>
+                  <h3 style={{ color: '#1e293b', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.2rem' }}>
+                    <span style={{ background: '#e0e7ff', color: '#4338ca', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontSize: '0.9rem' }}>1</span>
+                    Cách thức Di chuyển
+                  </h3>
+                  <p style={{ margin: '8px 0 0 36px' }}>
+                    Người chơi lần lượt gieo 2 viên xúc xắc và di chuyển theo tổng điểm. Nếu gieo được <strong>Số Đôi</strong> (2 mặt giống nhau), bạn sẽ được đi thêm lượt nữa!
+                    <br /><em style={{ fontSize: '0.9rem', color: '#64748b' }}>(Cẩn thận: Gieo đôi 3 lần liên tiếp sẽ phải vào tù ngay lập tức!)</em>
+                  </p>
+                </div>
+
+                <div style={{ marginBottom: 24 }}>
+                  <h3 style={{ color: '#1e293b', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.2rem' }}>
+                    <span style={{ background: '#dcfce7', color: '#15803d', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontSize: '0.9rem' }}>2</span>
+                    Đầu tư & Sở hữu
+                  </h3>
+                  <ul style={{ margin: '8px 0 0 36px', padding: 0, listStyle: 'none' }}>
+                    <li style={{ marginBottom: 8 }}>🏠 <strong>Mua đất:</strong> Dừng tại ô chưa có chủ để mua. Sở hữu đủ bộ màu để xây nhà.</li>
+                    <li style={{ marginBottom: 8 }}>💵 <strong>Thu tiền thuê:</strong> Ai đi vào đất của bạn sẽ phải trả tiền thuê. Có nhà/khách sạn tiền thuê càng cao!</li>
+                    <li>🧠 <strong>Tính năng Đặc biệt:</strong> Trả lời đúng câu hỏi kiến thức để được <strong>Giảm giá 20%</strong> khi mua đất!</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 style={{ color: '#1e293b', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.2rem' }}>
+                    <span style={{ background: '#fee2e2', color: '#b91c1c', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontSize: '0.9rem' }}>3</span>
+                    Luật Phá sản & Chiến thắng
+                  </h3>
+                  <p style={{ margin: '8px 0 0 36px', marginBottom: 24 }}>
+                    Nếu bạn nợ nhiều hơn số tiền và tài sản đang có, bạn sẽ phá sản.
+                    <br /><strong>🏆 Người chiến thắng</strong> là người cuối cùng trụ lại hoặc người giàu nhất khi hết giờ/hết câu hỏi.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 style={{ color: '#1e293b', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.2rem' }}>
+                    <span style={{ background: '#fef3c7', color: '#d97706', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontSize: '0.9rem' }}>4</span>
+                    Cảnh báo: Các Hình Phạt! ⚠️
+                  </h3>
+                  <ul style={{ margin: '8px 0 0 36px', padding: 0, listStyle: 'none' }}>
+                    <li style={{ marginBottom: 8, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                      <span>🎤</span> <span>Hát song ca "Cơn mưa tình yêu" (1 nam & 1 nữ)</span>
+                    </li>
+                    <li style={{ marginBottom: 8, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                      <span>💃</span> <span>Chọn 1: Thể hiện tài năng / Thơm má bạn cùng nhóm / Nhảy tự do</span>
+                    </li>
+                    <li style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <span>🎶</span> <span>Hát một bài hát bất kì</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div style={{ marginTop: 32, textAlign: 'center' }}>
                 <button
                   className="primary"
-                  style={{ padding: '12px 40px', fontSize: '1.2rem', boxShadow: '0 4px 20px rgba(99, 102, 241, 0.4)' }}
+                  style={{
+                    padding: '14px 40px',
+                    fontSize: '1.2rem',
+                    width: 'auto',
+                    minWidth: '240px',
+                    borderRadius: '50px',
+                    background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)',
+                    boxShadow: '0 8px 20px -4px rgba(16, 185, 129, 0.5)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px',
+                    border: '1px solid rgba(255,255,255,0.2)'
+                  }}
                   onClick={() => setShowIntro(false)}
                 >
-                  ĐÃ HIỂU, VÀO GAME!
+                  SẴN SÀNG CHINH PHỤC! 🚀
                 </button>
               </div>
             </div>
