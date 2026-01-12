@@ -634,6 +634,12 @@ export function gameReducer(state, action) {
 
   if (action.type === "END_TURN") {
     if (!["post_roll", "buy_decision", "await_roll"].includes(state.phase)) return state;
+
+    // Check if questions are exhausted -> End Game immediately
+    if (isQuestionsExhausted(state)) {
+      return { ...state, phase: "game_over", gameOverReason: "questions_exhausted" };
+    }
+
     let nextState = { ...state, activePlayerIndex: getNextActiveIndex(state), roll: null, doublesCount: 0 };
     if (allButOneBankrupt(nextState.players)) {
       return { ...nextState, phase: "game_over" };
