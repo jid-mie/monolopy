@@ -240,7 +240,30 @@ io.on("connection", (socket) => {
   });
 
   socket.on("start_game", () => {
-    // ...
+    const room = findRoomBySocket(socket.id);
+    if (!room) return;
+
+    if (room.hostId !== socket.id) return; // Only host starts
+
+    // Determine Player Order
+    let orderedPlayers = [...room.players];
+    if (room.orderMode === "random") {
+      orderedPlayers = shuffle(orderedPlayers);
+    }
+
+    // Set room.playerOrder (list of socketIds)
+    room.playerOrder = orderedPlayers.map(p => p.socketId);
+
+    // Initialize game
+    const playerNames = orderedPlayers.map(p => p.name);
+    // AI flags? Default to false for online for now, or could pass in
+    const aiFlags = orderedPlayers.map(() => false);
+
+    room.state = createInitialState(playerNames, aiFlags);
+    room.state.orderMode = room.orderMode;
+
+    room.started = true;
+
     io.to(room.code).emit("game_state", room.state);
     io.to(room.code).emit("room_update", generateRoomPayload(room));
   });

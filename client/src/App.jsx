@@ -1074,8 +1074,8 @@ export default function App() {
       </div>
 
       {state.phase === "penalty" && state.pending?.type === "penalty" && (
-        <div className="modal-backdrop">
-          <div className="modal-card" style={{ maxWidth: '700px', textAlign: 'center', border: '4px solid #ff4444', animation: 'popIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28)' }}>
+        <div className="modal-backdrop" style={{ zIndex: 9999 }}>
+          <div className="modal-card" style={{ maxWidth: '700px', textAlign: 'center', border: '4px solid #ff4444' }}>
             <div style={{ fontSize: '5rem', marginBottom: '10px' }}>😈</div>
             <h2 style={{ fontSize: '3rem', color: '#ff4444', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '2px' }}>HÌNH PHẠT!</h2>
 
