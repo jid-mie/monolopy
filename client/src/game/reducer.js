@@ -539,18 +539,12 @@ export function gameReducer(state, action) {
 
   if (action.type === "DECLINE_BUY") {
     if (state.phase !== "buy_decision" || state.pending?.type !== "buy") return state;
-    return {
+    // Skip Auction -> Go directly to post_roll
+    return logWithLimit({
       ...state,
-      phase: "auction",
-      pending: {
-        type: "auction",
-        squareId: state.pending.squareId,
-        highestBid: 0,
-        highestBidderId: null,
-        activeBidderId: getNextActiveIndex(state),
-        passedIds: []
-      }
-    };
+      phase: "post_roll",
+      pending: null
+    }, `${state.players[activeId].name} không mua tài sản.`);
   }
 
   if (action.type === "AUCTION_BID") {
