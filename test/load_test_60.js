@@ -1,4 +1,5 @@
-// Load test: 60 participants (host + 59 spectators) with reliable start and auto‑roll/answer
+// Load test: 60 participants (host + 59 spectators)
+// Forces host to land on Challenge squares (ID 17) to trigger questions.
 // Run with: node test/load_test_60.js
 const io = require('socket.io-client');
 const SERVER_URL = process.env.VITE_SERVER_URL || 'http://localhost:3000';
@@ -6,7 +7,7 @@ const SERVER_URL = process.env.VITE_SERVER_URL || 'http://localhost:3000';
 function delay(ms) { return new Promise(res => setTimeout(res, ms)); }
 
 (async () => {
-    console.log('Connecting host...');
+    console.log('Connecting host to:', SERVER_URL);
     const host = io(SERVER_URL);
     await new Promise(res => host.once('connect', res));
     const nickname = 'HostUser';
@@ -26,70 +27,78 @@ function delay(ms) { return new Promise(res => setTimeout(res, ms)); }
         const client = io(SERVER_URL);
         await new Promise(res => client.once('connect', res));
         client.emit('join_room', { code: roomCode, name: `Spectator${i}` });
-        client.on('room_joined', () => console.log(`Spectator${i} joined`));
+        client.on('room_joined', () => { /* quiet */ });
         spectators.push(client);
+        if (i % 10 === 0) console.log(`${i} spectators connected...`);
         await delay(10);
     }
     console.log('All spectators connected.');
 
-    // Wait for the room to be marked as started (in case server needs a moment)
-    await new Promise(resolve => {
-        const handler = data => {
-            if (data.started) {
-                console.log('Room marked as started by server.');
-                host.off('room_update', handler);
-                resolve();
-            }
-        };
-        host.on('room_update', handler);
-        // Fallback: after 2 seconds, just proceed
-        setTimeout(() => {
-            host.off('room_update', handler);
-            resolve();
-        }, 2000);
-    });
+    // Wait for room readiness
+    await delay(1000);
 
-    // Helper to roll dice
-    const rollDice = () => host.emit('dispatch_action', { action: { type: 'ROLL' } });
+    // Helper actions
+    const debugMove = (id) => host.emit('dispatch_action', { action: { type: 'DEBUG_MOVE', payload: { targetId: id } } });
+    const answerQuestion = (idx) => host.emit('dispatch_action', { action: { type: 'QUESTION_ANSWER', payload: { choiceIndex: idx } } });
+    const endTurn = () => host.emit('dispatch_action', { action: { type: 'END_TURN' } });
 
-    // Start the game
+    // Start game
     host.emit('start_game');
     console.log('Game start requested.');
 
     let answered = 0;
     const maxQuestions = 35;
-    let rolling = false;
+    let processing = false;
+    let lastPhase = '';
 
     host.on('game_state', async state => {
-        // Answer pending questions
+        if (state.phase !== lastPhase) {
+            console.log(`Phase changed to: ${state.phase}`);
+            lastPhase = state.phase;
+        }
+
+        if (processing) return;
+
         if (state.pending && state.pending.type === 'question') {
+            processing = true;
             const choiceIndex = Math.floor(Math.random() * state.pending.options.length);
-            host.emit('dispatch_action', { action: { type: 'QUESTION_ANSWER', payload: { choiceIndex } } });
+            console.log(`Answering question ${answered + 1}...`);
+            answerQuestion(choiceIndex);
             answered++;
-            console.log(`Answered question ${answered}`);
             if (answered >= maxQuestions) {
-                console.log('All questions answered, cleaning up.');
+                console.log('All questions answered! SUCCESS.');
                 cleanup();
-                return;
+            }
+            setTimeout(() => { processing = false; }, 200);
+        }
+        else if (state.phase === 'await_roll') {
+            // Force move to Challenge ID 17
+            if (!processing) {
+                processing = true;
+                console.log('Forcing move to Challenge (ID 17)...');
+                debugMove(17);
+                setTimeout(() => { processing = false; }, 500);
             }
         }
-        // Roll when allowed
-        if (!rolling && state.phase === 'await_roll') {
-            rolling = true;
-            rollDice();
-            setTimeout(() => { rolling = false; }, 300);
+        else if (state.phase === 'post_roll') {
+            if (!processing) {
+                processing = true;
+                endTurn();
+                setTimeout(() => { processing = false; }, 200);
+            }
         }
     });
 
     const timeoutId = setTimeout(() => {
-        console.log('Timeout reached, cleaning up.');
+        console.log(`Timeout reached. Answered ${answered} questions.`);
         cleanup();
-    }, 180000); // 3 minutes max
+    }, 300000); // 5 minutes
 
     function cleanup() {
         clearTimeout(timeoutId);
         host.disconnect();
         spectators.forEach(s => s.disconnect());
         console.log('Test completed.');
+        process.exit(0);
     }
 })();

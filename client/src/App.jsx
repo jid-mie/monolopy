@@ -480,33 +480,72 @@ export default function App() {
   if (mode === null) {
     return (
       <div className="app-shell welcome-screen">
-        <div className="welcome-card card">
-          <h1 className="title" style={{ fontSize: "3rem", marginBottom: "0.5rem" }}>Cờ Tỷ Phú</h1>
-          <p className="subtitle" style={{ marginBottom: "2rem" }}>Chọn chế độ chơi để bắt đầu</p>
+        <div className="welcome-card card" style={{
+          background: 'linear-gradient(145deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.92) 100%)',
+          border: '1px solid rgba(255,255,255,0.5)',
+          boxShadow: '0 25px 80px rgba(0,0,0,0.25), 0 10px 30px rgba(99,102,241,0.15)',
+          maxWidth: 500,
+          padding: '50px 40px'
+        }}>
+          {/* Decorative top border */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '60%',
+            height: 4,
+            background: 'linear-gradient(90deg, #6366f1, #a855f7, #ec4899)',
+            borderRadius: '0 0 4px 4px'
+          }} />
 
-          <div className="mode-selection">
-            {/* Local Mode Disabled
-            <button className="primary big-btn" onClick={() => setMode("local")}>
-              <div style={{ fontSize: "1.5rem" }}>🛡️</div>
-              <div>
-                <strong>Chơi Tại Máy</strong>
-                <div style={{ fontSize: "0.8rem", opacity: 0.7 }}>Chơi offline với bạn bè hoặc máy</div>
-              </div>
-            </button>
-            */}
+          {/* Logo/Icon */}
+          <div style={{
+            fontSize: '4rem',
+            marginBottom: '16px',
+            filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))'
+          }}>🎲</div>
 
-            <button className="primary big-btn" onClick={() => setMode("online")}>
-              <div style={{ fontSize: "1.5rem" }}>🌍</div>
-              <div>
-                <strong>Chơi Online</strong>
-                <div style={{ fontSize: "0.8rem", opacity: 0.7 }}>Tạo phòng và mời bạn bè từ xa</div>
-              </div>
-            </button>
-          </div>
+          <h1 style={{
+            fontSize: "2.8rem",
+            marginBottom: "0.5rem",
+            background: 'linear-gradient(135deg, #1e293b 0%, #6366f1 50%, #a855f7 100%)',
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            fontWeight: 800,
+            letterSpacing: '-1px'
+          }}>Cờ Tỷ Phú</h1>
 
+          <p style={{
+            marginBottom: "2.5rem",
+            color: '#64748b',
+            fontSize: '1rem'
+          }}>Trò chơi kiến thức hấp dẫn</p>
+
+          <button
+            className="primary big-btn"
+            onClick={() => setMode("online")}
+            style={{
+              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%)',
+              border: 'none',
+              padding: '24px 48px',
+              borderRadius: 16,
+              boxShadow: '0 10px 40px rgba(99,102,241,0.4)',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              width: '100%',
+              maxWidth: 320
+            }}
+          >
+            <div style={{ fontSize: "2rem", marginBottom: 8 }}>🌍</div>
+            <div style={{ color: '#fff' }}>
+              <strong style={{ fontSize: '1.2rem', display: 'block', marginBottom: 4 }}>Bắt Đầu Chơi</strong>
+              <div style={{ fontSize: "0.85rem", opacity: 0.9 }}>Tạo phòng và mời bạn bè</div>
+            </div>
+          </button>
         </div>
       </div>
-
     );
   }
 
@@ -521,7 +560,7 @@ export default function App() {
 
           {/* Connection Status Indicator Removed */}
 
-          <div style={{ width: "100%", textAlign: "left", marginBottom: 8 }}>Tên hiển thị:</div>
+          <div style={{ width: "100%", textAlign: "left", marginBottom: 8, color: "#334155", fontWeight: 500 }}>Tên hiển thị:</div>
           <input
             className="input"
             placeholder="Nhập tên của bạn..."
@@ -530,7 +569,7 @@ export default function App() {
             style={{ marginBottom: 24 }}
           />
 
-          <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", margin: "0 0 24px 0", paddingTop: 24 }}>
+          <div style={{ borderTop: "1px solid rgba(99, 102, 241, 0.15)", margin: "0 0 24px 0", paddingTop: 24 }}>
             <h3 style={{ margin: "0 0 16px 0", color: "var(--accent)" }}>Tạo phòng mới</h3>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
@@ -540,16 +579,16 @@ export default function App() {
                   id="presentationMode"
                   checked={presentationMode}
                   onChange={(e) => setPresentationMode(e.target.checked)}
-                  style={{ width: 16, height: 16, cursor: "pointer" }}
+                  style={{ width: 18, height: 18, cursor: "pointer", accentColor: "#6366f1" }}
                 />
-                <label htmlFor="presentationMode" style={{ cursor: "pointer", fontSize: "0.95rem" }}>
-                  Chế độ Thuyết trình <span style={{ fontSize: "0.8em", opacity: 0.7 }}>(Host điều khiển tất cả)</span>
+                <label htmlFor="presentationMode" style={{ cursor: "pointer", fontSize: "0.95rem", color: "#334155" }}>
+                  Chế độ Thuyết trình <span style={{ fontSize: "0.8em", opacity: 0.6 }}>(Host điều khiển tất cả)</span>
                 </label>
               </div>
 
               {presentationMode && (
                 <div style={{ display: "flex", alignItems: "center", gap: 12, paddingLeft: 28, animation: "fadeIn 0.3s ease" }}>
-                  <label style={{ fontSize: "0.9rem" }}>Số lượng nhóm:</label>
+                  <label style={{ fontSize: "0.9rem", color: "#334155" }}>Số lượng nhóm:</label>
                   <input
                     type="number"
                     min="2"
@@ -558,14 +597,15 @@ export default function App() {
                     onChange={(e) => setTeamCount(Math.max(2, Math.min(8, Number(e.target.value))))}
                     style={{
                       width: 100,
-                      padding: "8px 12px",
-                      borderRadius: 6,
-                      background: "rgba(255,255,255,0.1)",
-                      color: "#fff",
-                      border: "1px solid rgba(255,255,255,0.2)",
+                      padding: "10px 14px",
+                      borderRadius: 10,
+                      background: "#fff",
+                      color: "#1e293b",
+                      border: "1px solid rgba(99, 102, 241, 0.3)",
                       fontSize: "1rem",
                       fontWeight: "bold",
-                      textAlign: "center"
+                      textAlign: "center",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.05)"
                     }}
                   />
                 </div>
@@ -673,7 +713,7 @@ export default function App() {
 
             {selectedSquare ? (
               <div className="panel card">
-                <h2 style={{ borderBottom: `2px solid ${selectedSquare.color || "rgba(255,255,255,0.1)"}` }}>
+                <h2 style={{ borderBottom: `2px solid ${selectedSquare.color || "rgba(0,0,0,0.1)"}` }}>
                   {selectedSquare.name}
                 </h2>
                 <div className="square-info-content">
@@ -878,7 +918,7 @@ export default function App() {
                         )}
 
                         {state.phase === "buy_decision" && state.pending?.squareId !== undefined && (
-                          <div className="decision-box" style={{ background: "rgba(30, 27, 41, 0.95)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(8px)", color: "#fff" }}>
+                          <div className="decision-box" style={{ background: "rgba(255, 255, 255, 0.95)", border: "1px solid rgba(99, 102, 241, 0.2)", backdropFilter: "blur(12px)", color: "#1e293b", borderRadius: 16, padding: 20, boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}>
                             <div className="decision-title">Mua {BOARD[state.pending.squareId].name}?</div>
                             <div className="decision-actions">
                               <button className="primary" onClick={() => dispatchAction({ type: "BUY" })}>Mua</button>
@@ -888,7 +928,7 @@ export default function App() {
                         )}
 
                         {state.phase === "buy_back_decision" && state.pending?.squareId !== undefined && (
-                          <div className="decision-box" style={{ background: "rgba(30, 27, 41, 0.95)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(8px)", color: "#fff", minWidth: 320 }}>
+                          <div className="decision-box" style={{ background: "rgba(255, 255, 255, 0.95)", border: "1px solid rgba(99, 102, 241, 0.2)", backdropFilter: "blur(12px)", color: "#1e293b", minWidth: 320, borderRadius: 16, padding: 20, boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}>
                             <div className="decision-title">Mua lại {BOARD[state.pending.squareId].name}?</div>
                             <div className="player-meta" style={{ marginBottom: 8 }}>
                               Giá mua lại: <strong style={{ color: "#4f4" }}>{formatMoney(state.pending.buyBackCost)}</strong><br />
@@ -902,7 +942,7 @@ export default function App() {
                         )}
 
                         {state.phase === "upgrade_decision" && state.pending?.squareId !== undefined && (
-                          <div className="decision-box" style={{ background: "rgba(30, 27, 41, 0.95)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(8px)", color: "#fff" }}>
+                          <div className="decision-box" style={{ background: "rgba(255, 255, 255, 0.95)", border: "1px solid rgba(99, 102, 241, 0.2)", backdropFilter: "blur(12px)", color: "#1e293b", borderRadius: 16, padding: 20, boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}>
                             <div className="decision-title">Nâng cấp {BOARD[state.pending.squareId].name}?</div>
                             <div className="player-meta">Giá: <strong>{formatMoney(BOARD[state.pending.squareId].houseCost)}</strong></div>
                             <div className="decision-actions">
@@ -914,7 +954,7 @@ export default function App() {
                         )}
 
                         {state.phase === "auction" && state.pending && (
-                          <div className="decision-box" style={{ background: "rgba(30, 27, 41, 0.95)", border: "1px solid rgba(255,255,255,0.1)", backdropFilter: "blur(8px)", color: "#fff", minWidth: 280 }}>
+                          <div className="decision-box" style={{ background: "rgba(255, 255, 255, 0.95)", border: "1px solid rgba(99, 102, 241, 0.2)", backdropFilter: "blur(12px)", color: "#1e293b", minWidth: 280, borderRadius: 16, padding: 20, boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}>
                             <div className="decision-title">Đấu giá: {BOARD[state.pending.squareId].name}</div>
                             <div className="player-meta">Giá cao nhất: <strong style={{ color: "#4f4" }}>{formatMoney(state.pending.highestBid)}</strong></div>
                             <div className="player-meta">Người giữ giá: <strong>{state.pending.highestBidderId !== null ? state.players[state.pending.highestBidderId].name : "Chưa có"}</strong></div>
@@ -938,7 +978,7 @@ export default function App() {
                         )}
 
                         {state.phase === "jail_choice" && activePlayer && (
-                          <div className="decision-box" style={{ background: "rgba(30, 27, 41, 0.95)", color: "#fff", border: "1px solid rgba(255,255,255,0.1)" }}>
+                          <div className="decision-box" style={{ background: "rgba(255, 255, 255, 0.95)", color: "#1e293b", border: "1px solid rgba(99, 102, 241, 0.2)", borderRadius: 16, padding: 20, boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}>
                             <div className="decision-title">Trong tù</div>
                             <div className="decision-actions" style={{ flexDirection: "column" }}>
                               <button className="primary" onClick={() => dispatchAction({ type: "JAIL_ROLL" })}>Đổ đôi</button>
@@ -980,7 +1020,7 @@ export default function App() {
             {/* Selected Square Info Moved to Left Panel */}
 
             <div className="panel card" style={{ maxHeight: "40%", display: 'flex', flexDirection: 'column', overflow: "hidden" }}>
-              <h2 style={{ margin: "0 0 12px 0", flexShrink: 0 }}>Tài chính</h2>
+              <h2 style={{ margin: "0 0 12px 0", flexShrink: 0, color: "#1e293b" }}>Tài chính</h2>
               <div className="finance-list" style={{ flex: 1, overflowY: "auto", display: 'flex', flexDirection: 'column', gap: 12, paddingRight: 4 }}>
                 {state.players && state.players.length > 0 ? (
                   state.players
@@ -993,44 +1033,44 @@ export default function App() {
                       return (
                         <div key={p.id} className="player-finance-card" style={{
                           background: isActive
-                            ? `linear-gradient(145deg, ${pColor}55 0%, ${pColor}11 100%)` // Brighter bg if active
-                            : 'linear-gradient(145deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)',
-                          backdropFilter: 'blur(12px)',
+                            ? `linear-gradient(145deg, rgba(255,255,255,0.95) 0%, ${pColor}20 100%)`
+                            : 'rgba(255, 255, 255, 0.85)',
+                          backdropFilter: 'blur(8px)',
                           borderRadius: 12,
                           padding: 16,
                           border: isActive
-                            ? `2px solid ${pColor}` // Solid border match color
-                            : '1px solid rgba(255,255,255,0.05)',
+                            ? `3px solid ${pColor}`
+                            : '1px solid rgba(255, 255, 255, 0.5)',
                           boxShadow: isActive
-                            ? `0 0 25px ${pColor}66, inset 0 0 10px ${pColor}22` // Bright glow
-                            : '0 4px 24px rgba(0,0,0,0.2)',
+                            ? `0 8px 24px ${pColor}40`
+                            : '0 4px 16px rgba(0,0,0,0.08)',
                           transition: 'all 0.3s ease',
                           transform: isActive ? 'scale(1.02)' : 'scale(1)'
                         }}>
                           {/* Header Info */}
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                               <div className="player-avatar" style={{
                                 width: 36, height: 36, borderRadius: 10,
                                 backgroundColor: playerColors[p.id % playerColors.length],
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: '1.4rem', boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                                border: '1px solid rgba(255,255,255,0.2)'
+                                fontSize: '1.4rem', boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                                border: '2px solid #fff', color: '#fff'
                               }}>
                                 {p.name.startsWith("Nhóm ") ? <span style={{ fontWeight: 800 }}>{p.name.split(" ")[1]}</span> : playerIcons[p.id % playerIcons.length]}
                               </div>
                               <div>
-                                <div style={{ fontWeight: '700', fontSize: '0.95rem', color: '#fff', letterSpacing: '0.02em' }}>{p.name}</div>
+                                <div style={{ fontWeight: '700', fontSize: '0.95rem', color: '#1e293b', letterSpacing: '0.02em' }}>{p.name}</div>
                                 {p.id === activePlayer?.id && (
-                                  <div style={{ fontSize: '0.65rem', color: '#64ffda', textTransform: 'uppercase', fontWeight: 600, marginTop: 2 }}>
+                                  <div style={{ fontSize: '0.65rem', color: '#6366f1', textTransform: 'uppercase', fontWeight: 600, marginTop: 2 }}>
                                     ● Đang chơi
                                   </div>
                                 )}
                               </div>
                             </div>
                             <div style={{ textAlign: 'right' }}>
-                              <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', fontWeight: 600, marginBottom: 2 }}>Tài sản</div>
-                              <div style={{ color: p.cash < 0 ? '#ff5252' : '#69f0ae', fontSize: '1.2rem', fontWeight: '800', fontFamily: 'monospace' }}>
+                              <div style={{ fontSize: '0.65rem', color: 'rgba(0,0,0,0.4)', textTransform: 'uppercase', fontWeight: 600, marginBottom: 2 }}>Tài sản</div>
+                              <div style={{ color: p.cash < 0 ? '#ef4444' : '#10b981', fontSize: '1.2rem', fontWeight: '800', fontFamily: 'monospace' }}>
                                 {formatMoney(p.cash)}
                               </div>
                             </div>
@@ -1041,17 +1081,17 @@ export default function App() {
                             const groups = groupProperties(state.properties, p);
                             const hasProperties = Object.keys(groups).length > 0;
                             if (!hasProperties) {
-                              return <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', textAlign: 'center', padding: '12px 0', fontStyle: 'italic' }}>Chưa sở hữu bất động sản</div>;
+                              return <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.3)', textAlign: 'center', padding: '12px 0', fontStyle: 'italic' }}>Chưa sở hữu bất động sản</div>;
                             }
                             return (
                               <div className="property-list" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                                 {Object.entries(groups).map(([key, list]) => {
                                   const color = colorMap[key] || (key === 'railroads' ? '#78909c' : key === 'utilities' ? '#bcaaa4' : '#fff');
                                   return (
-                                    <div key={key} style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.15)', borderRadius: 6, padding: '6px 8px' }}>
+                                    <div key={key} style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.04)', borderRadius: 6, padding: '6px 8px' }}>
                                       <div style={{ width: 4, height: 28, backgroundColor: color, borderRadius: 4, marginRight: 10, flexShrink: 0, boxShadow: `0 0 6px ${color}` }}></div>
                                       <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.9)', lineHeight: '1.3' }}>
+                                        <div style={{ fontSize: '0.8rem', color: '#334155', lineHeight: '1.3' }}>
                                           {list.map(s => s.name).join(', ')}
                                         </div>
                                       </div>
@@ -1075,103 +1115,106 @@ export default function App() {
 
           </section>
         </main>
-      </div>
+      </div >
 
       {console.log("RENDER CHECK:", state.phase, state.pending)}
-      {state.phase === "penalty" && state.pending?.type === "penalty" && (
-        <div className="modal-backdrop" style={{ zIndex: 9999 }}>
-          <div className="modal-card" style={{ maxWidth: '700px', textAlign: 'center', border: '4px solid #ff4444' }}>
-            <div style={{ fontSize: '5rem', marginBottom: '10px' }}>😈</div>
-            <h2 style={{ fontSize: '3rem', color: '#ff4444', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '2px' }}>HÌNH PHẠT!</h2>
+      {
+        state.phase === "penalty" && state.pending?.type === "penalty" && (
+          <div className="modal-backdrop" style={{ zIndex: 9999 }}>
+            <div className="modal-card" style={{ maxWidth: '700px', textAlign: 'center', border: '4px solid #ff4444' }}>
+              <div style={{ fontSize: '5rem', marginBottom: '10px' }}>😈</div>
+              <h2 style={{ fontSize: '3rem', color: '#ff4444', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '2px' }}>HÌNH PHẠT!</h2>
 
-            <div style={{
-              background: 'rgba(255, 68, 68, 0.1)',
-              border: '2px dashed rgba(255, 68, 68, 0.5)',
-              borderRadius: '20px',
-              padding: '40px',
-              marginBottom: '32px',
-              fontSize: '2.5rem',
-              fontWeight: '900',
-              color: '#fff',
-              lineHeight: 1.3,
-              textShadow: '0 2px 10px rgba(0,0,0,0.5)'
-            }}>
-              {state.pending.text || "Hình phạt bí ẩn..."}
-            </div>
-
-            <button
-              className="primary"
-              style={{
-                width: '200px',
-                padding: '20px',
-                fontSize: '1.5rem',
-                backgroundColor: '#ff4444',
-                boxShadow: '0 4px 12px rgba(255, 68, 68, 0.4)',
-                borderRadius: '50px'
-              }}
-              onClick={() => dispatchAction({ type: "PENALTY_OK" })}
-            >
-              OK
-            </button>
-          </div>
-        </div>
-      )}
-      {state.phase === "question" && state.pending?.type === "question" && (
-        <div className="modal-backdrop">
-          <div className="modal-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h2 style={{ margin: 0 }}>Câu hỏi</h2>
               <div style={{
-                width: '60px',
-                height: '60px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1.8rem',
-                fontWeight: '800',
-                background: questionTimer <= 5 ? 'linear-gradient(135deg, #ff4444 0%, #cc0000 100%)' :
-                  questionTimer <= 10 ? 'linear-gradient(135deg, #ffaa00 0%, #ff6600 100%)' :
-                    'linear-gradient(135deg, #44ff44 0%, #00cc00 100%)',
-                color: '#fff',
-                boxShadow: questionTimer <= 5 ? '0 0 20px rgba(255, 68, 68, 0.6)' : '0 4px 12px rgba(0,0,0,0.3)',
-                animation: questionTimer <= 5 ? 'pulse 0.5s infinite' : 'none'
+                background: 'rgba(255, 68, 68, 0.1)',
+                border: '2px dashed rgba(255, 68, 68, 0.5)',
+                borderRadius: '20px',
+                padding: '40px',
+                marginBottom: '32px',
+                fontSize: '2.5rem',
+                fontWeight: '900',
+                color: '#1e293b',
+                lineHeight: 1.3
               }}>
-                {questionTimer}
+                {state.pending.text || "Hình phạt bí ẩn..."}
               </div>
+
+              <button
+                className="primary"
+                style={{
+                  width: '200px',
+                  padding: '20px',
+                  fontSize: '1.5rem',
+                  backgroundColor: '#ff4444',
+                  boxShadow: '0 4px 12px rgba(255, 68, 68, 0.4)',
+                  borderRadius: '50px'
+                }}
+                onClick={() => dispatchAction({ type: "PENALTY_OK" })}
+              >
+                OK
+              </button>
             </div>
-            <div className="player-meta">Độ khó: {state.pending.question?.difficulty === "hard" ? "Khó" : state.pending.question?.difficulty === "medium" ? "Trung bình" : "Dễ"}</div>
-            {state.pending.context === "purchase" && (
-              <div className="player-meta">
-                Trả lời đúng được giảm giá <strong style={{ color: "#4f4" }}>20%</strong> khi mua.
-              </div>
-            )}
-            {state.pending.context === "tax" && (
-              <div className="player-meta">
-                Trả lời đúng được miễn <strong style={{ color: "#4f4" }}>{formatMoney(state.pending.amount)}</strong> tiền phạt.
-              </div>
-            )}
-            {state.pending.context === "challenge" && (
-              <div className="player-meta">
-                Đúng nhận ${CHALLENGE_REWARD[state.pending.question?.difficulty]?.win || 50}, sai mất ${CHALLENGE_REWARD[state.pending.question?.difficulty]?.lose || 20}.
-              </div>
-            )}
-            <div className="question-text">{state.pending.question?.text}</div>
-            <div className="question-options">
-              {state.pending.question?.options?.map((option, index) => (
-                <button key={index} className="ghost" onClick={() => dispatchAction({ type: "QUESTION_ANSWER", payload: { choiceIndex: index } })}>
-                  {option}
-                </button>
-              ))}
-            </div>
-            {questionTimer <= 5 && (
-              <div style={{ textAlign: 'center', marginTop: '12px', color: '#ff4444', fontWeight: '600', animation: 'pulse 0.5s infinite' }}>
-                ⚠️ Sắp hết giờ!
-              </div>
-            )}
           </div>
-        </div>
-      )}
+        )
+      }
+      {
+        state.phase === "question" && state.pending?.type === "question" && (
+          <div className="modal-backdrop">
+            <div className="modal-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h2 style={{ margin: 0 }}>Câu hỏi</h2>
+                <div style={{
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1.8rem',
+                  fontWeight: '800',
+                  background: questionTimer <= 5 ? 'linear-gradient(135deg, #ff4444 0%, #cc0000 100%)' :
+                    questionTimer <= 10 ? 'linear-gradient(135deg, #ffaa00 0%, #ff6600 100%)' :
+                      'linear-gradient(135deg, #44ff44 0%, #00cc00 100%)',
+                  color: '#fff',
+                  boxShadow: questionTimer <= 5 ? '0 0 20px rgba(255, 68, 68, 0.6)' : '0 4px 12px rgba(0,0,0,0.3)',
+                  animation: questionTimer <= 5 ? 'pulse 0.5s infinite' : 'none'
+                }}>
+                  {questionTimer}
+                </div>
+              </div>
+              <div className="player-meta">Độ khó: {state.pending.question?.difficulty === "hard" ? "Khó" : state.pending.question?.difficulty === "medium" ? "Trung bình" : "Dễ"}</div>
+              {state.pending.context === "purchase" && (
+                <div className="player-meta">
+                  Trả lời đúng được giảm giá <strong style={{ color: "#4f4" }}>20%</strong> khi mua.
+                </div>
+              )}
+              {state.pending.context === "tax" && (
+                <div className="player-meta">
+                  Trả lời đúng được miễn <strong style={{ color: "#4f4" }}>{formatMoney(state.pending.amount)}</strong> tiền phạt.
+                </div>
+              )}
+              {state.pending.context === "challenge" && (
+                <div className="player-meta">
+                  Đúng nhận ${CHALLENGE_REWARD[state.pending.question?.difficulty]?.win || 50}, sai mất ${CHALLENGE_REWARD[state.pending.question?.difficulty]?.lose || 20}.
+                </div>
+              )}
+              <div className="question-text">{state.pending.question?.text}</div>
+              <div className="question-options">
+                {state.pending.question?.options?.map((option, index) => (
+                  <button key={index} className="ghost" onClick={() => dispatchAction({ type: "QUESTION_ANSWER", payload: { choiceIndex: index } })}>
+                    {option}
+                  </button>
+                ))}
+              </div>
+              {questionTimer <= 5 && (
+                <div style={{ textAlign: 'center', marginTop: '12px', color: '#ff4444', fontWeight: '600', animation: 'pulse 0.5s infinite' }}>
+                  ⚠️ Sắp hết giờ!
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      }
 
       {
         state.phase === "game_over" && (() => {
@@ -1479,14 +1522,14 @@ export default function App() {
       {
         showIntro && (
           <div className="modal-backdrop" style={{ zIndex: 9999 }}>
-            <div className="modal-card" style={{ maxWidth: 800, textAlign: 'left' }}>
-              <h1 style={{ textAlign: 'center', color: '#64ffda', marginBottom: 20 }}>HƯỚNG DẪN & LUẬT CHƠI</h1>
+            <div className="modal-card" style={{ maxWidth: 800, textAlign: 'left', background: 'rgba(255,255,255,0.98)' }}>
+              <h1 style={{ textAlign: 'center', color: '#6366f1', marginBottom: 20 }}>HƯỚNG DẪN & LUẬT CHƠI</h1>
 
-              <div style={{ marginBottom: 12, color: '#fff', fontSize: '0.9rem' }}>
+              <div style={{ marginBottom: 12, color: '#334155', fontSize: '0.9rem' }}>
                 💰 Tiền khởi điểm cho mỗi nhóm: <strong>$1250</strong>
               </div>
-              <div style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: 10, fontSize: '0.95rem', lineHeight: 1.6 }}>
-                <h3 style={{ color: '#fff', borderBottom: '1px solid #ffffff33', paddingBottom: 5 }}>1. Cách sử dụng Web</h3>
+              <div style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: 10, fontSize: '0.95rem', lineHeight: 1.6, color: '#334155' }}>
+                <h3 style={{ color: '#1e293b', borderBottom: '1px solid #e2e8f0', paddingBottom: 5 }}>1. Cách sử dụng Web</h3>
                 <ul style={{ marginBottom: 20, paddingLeft: 20 }}>
                   <li style={{ marginBottom: 8 }}><strong>Bước 1:</strong> Nhập <strong>Tên hiển thị</strong> (Nickname).</li>
                   <li style={{ marginBottom: 8 }}><strong>Bước 2:</strong>
@@ -1498,7 +1541,7 @@ export default function App() {
                   <li><strong>Lưu ý:</strong> Chế độ Thuyết trình dành cho lớp học/nhóm đông sử dụng chung một màn hình lớn.</li>
                 </ul>
 
-                <h3 style={{ color: '#fff', borderBottom: '1px solid #ffffff33', paddingBottom: 5 }}>2. Luật chơi Đặc biệt</h3>
+                <h3 style={{ color: '#1e293b', borderBottom: '1px solid #e2e8f0', paddingBottom: 5 }}>2. Luật chơi Đặc biệt</h3>
                 <ul style={{ paddingLeft: 20 }}>
                   <li style={{ marginBottom: 6 }}><strong>Mục tiêu:</strong> Trở thành đại gia bất động sản cuối cùng chưa phá sản.</li>
                   <li style={{ marginBottom: 6 }}><strong>Trả lời câu hỏi:</strong> Cơ hội nhận giảm giá <strong>20%</strong> khi mua đất hoặc miễn phạt nếu trả lời đúng câu hỏi kiến thức.</li>
@@ -1512,7 +1555,7 @@ export default function App() {
               <div style={{ marginTop: 24, textAlign: 'center' }}>
                 <button
                   className="primary"
-                  style={{ padding: '12px 40px', fontSize: '1.2rem', boxShadow: '0 0 20px rgba(100, 255, 218, 0.4)' }}
+                  style={{ padding: '12px 40px', fontSize: '1.2rem', boxShadow: '0 4px 20px rgba(99, 102, 241, 0.4)' }}
                   onClick={() => setShowIntro(false)}
                 >
                   ĐÃ HIỂU, VÀO GAME!
@@ -1522,19 +1565,6 @@ export default function App() {
           </div>
         )
       }
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        background: 'rgba(0,0,0,0.8)',
-        color: '#0f0',
-        zIndex: 10000,
-        padding: '4px',
-        fontSize: '10px',
-        pointerEvents: 'none'
-      }}>
-        DEBUG: {state.phase} | Pending: {state.pending?.type} | ID: {activePlayer?.id}
-      </div>
     </>
   );
 }

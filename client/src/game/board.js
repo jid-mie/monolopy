@@ -70,8 +70,6 @@ export const LIQUIDITY = {
 
 export const PENALTIES = [
   "Hát song ca cơn mưa tình yêu (yêu cầu một nam và một nữ bất kì trong nhóm)",
-  "Nhảy hot trend tik tok",
-  "Chống đẩy 15 cái",
-  "Squat 20 cái",
+  "Chọn 1 trong 3: Thể hiện tài năng trước lớp / Thơm má một bạn cùng nhóm / Nhảy một bài tùy thích",
   "Hát bài hát bất kì"
 ];

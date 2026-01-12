@@ -1,27 +1,27 @@
 :root {
   font-family: "Inter", "Segoe UI", sans-serif;
-  color: #e0e0e0;
-  background-color: #121019;
+  color: #2d3748;
+  background-color: #f5f7fa;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 
-  /* Dark Theme Variables */
-  --paper: #1e1b29;
-  --ink: #e6e6e6;
-  --accent: #ff4785;
-  /* Pinkish red */
-  --accent-dark: #d43669;
-  --success: #2ecc71;
-  --forest: #27ae60;
-  --board: #181521;
-  --panel: #1e1b26;
-  --stroke: #332e40;
-  --muted: #8b869e;
-  --gold: #f1c40f;
+  /* Balanced Light Theme */
+  --paper: #ffffff;
+  --ink: #1a202c;
+  --accent: #6366f1;
+  /* Indigo */
+  --accent-dark: #4f46e5;
+  --success: #10b981;
+  --forest: #059669;
+  --board: #f8fafc;
+  --panel: #ffffff;
+  --stroke: #e2e8f0;
+  --muted: #64748b;
+  --gold: #f59e0b;
 
-  /* Glassmorphism */
-  --glass: rgba(30, 27, 41, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  /* Soft Glassmorphism */
+  --glass: rgba(255, 255, 255, 0.95);
+  --glass-border: rgba(99, 102, 241, 0.12);
 }
 
 * {
@@ -30,10 +30,8 @@
 
 body {
   margin: 0;
-  background: #121019;
-  background-image:
-    radial-gradient(circle at 10% 20%, rgba(90, 50, 150, 0.15) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(200, 50, 100, 0.1) 0%, transparent 40%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 40%, #a855f7 70%, #ec4899 100%);
+  background-attachment: fixed;
   color: var(--ink);
   min-height: 100vh;
 }

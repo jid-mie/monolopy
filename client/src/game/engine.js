@@ -15,6 +15,9 @@ export function shuffle(items) {
 }
 
 export function rollDice() {
+  if (typeof window !== 'undefined' && window.FORCE_ROLL_4) {
+    return { die1: 2, die2: 2, total: 4, isDouble: true };
+  }
   const die1 = Math.floor(Math.random() * 6) + 1;
   const die2 = Math.floor(Math.random() * 6) + 1;
   return { die1, die2, total: die1 + die2, isDouble: die1 === die2 };

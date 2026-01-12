@@ -18,7 +18,7 @@
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--glass-border);
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
 }
 
 .title {
@@ -26,33 +26,33 @@
   font-size: 24px;
   font-weight: 800;
   letter-spacing: -0.5px;
-  background: linear-gradient(135deg, #fff 0%, #a5a5a5 100%);
+  background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .subtitle {
-  color: var(--muted);
-  font-size: 13px;
+  color: #475569;
+  font-size: 14px;
   margin-top: 4px;
 }
 
 .card {
-  background: var(--glass);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+  border-color: rgba(0, 0, 0, 0.1);
 }
 
 .panel h2 {
@@ -60,7 +60,7 @@
   font-size: 16px;
   font-weight: 700;
   margin: 0 0 16px;
-  color: #fff;
+  color: #1e293b;
   letter-spacing: 0.5px;
   text-transform: uppercase;
   opacity: 0.9;
@@ -74,13 +74,13 @@
   padding: 10px 20px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(255, 71, 133, 0.3);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
   transition: all 0.2s ease;
 }
 
 .primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(255, 71, 133, 0.4);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
   filter: brightness(1.1);
 }
 
@@ -92,8 +92,8 @@
 }
 
 .ghost {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   color: var(--ink);
   padding: 10px 18px;
   border-radius: 12px;
@@ -103,13 +103,13 @@
 }
 
 .ghost:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.15);
 }
 
 .tiny {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   color: var(--muted);
   padding: 6px 12px;
   font-size: 11px;
@@ -363,10 +363,20 @@
 
 .input {
   width: 100%;
-  padding: 8px 10px;
-  border: 1px solid var(--stroke);
+  padding: 10px 14px;
+  border: 1px solid rgba(99, 102, 241, 0.2);
   background: #fff;
   margin-top: 6px;
+  border-radius: 10px;
+  color: #1e293b;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
 .property-groups {
@@ -496,15 +506,15 @@
 }
 
 .board-cell {
-  background: #1e1b2e;
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 4px;
   position: relative;
   transition: transform 0.2s, box-shadow 0.2s;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   padding: 2px;
 }
 
@@ -542,9 +552,9 @@
 .board-square:hover {
   transform: translateY(-4px) scale(1.1);
   z-index: 50;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
-  border-color: rgba(255, 255, 255, 0.4);
-  background: #252138;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  border-color: rgba(99, 102, 241, 0.4);
+  background: #f8fafc;
 }
 
 /* Property Styling using CSS Variables */
@@ -580,11 +590,11 @@
   font-weight: 700;
   text-transform: uppercase;
   text-align: center;
-  color: #fff;
+  color: #1e293b;
   padding: 1px;
   margin-bottom: auto;
   line-height: 1.1;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+  text-shadow: none;
   /* Stronger shadow */
 }
 
@@ -592,7 +602,7 @@
   font-size: 10px;
   /* Larger font */
   font-weight: 700;
-  color: #e0e0e0;
+  color: #475569;
   /* Brighter color */
   text-align: center;
   padding-bottom: 2px;
@@ -603,7 +613,7 @@
   /* Slightly smaller to give text space */
   height: 18px;
   margin: auto;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(0, 0, 0, 0.5);
 }
 
 .board-square.type-chance .square-icon,
@@ -613,8 +623,8 @@
 }
 
 .board-square.corner {
-  background: #2a253a;
-  border: 2px solid rgba(255, 255, 255, 0.15);
+  background: #f1f5f9;
+  border: 2px solid rgba(0, 0, 0, 0.08);
   justify-content: center;
 }
 
@@ -1041,7 +1051,7 @@
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(5px);
   display: flex;
   align-items: center;
@@ -1056,9 +1066,9 @@
   border: 1px solid var(--glass-border);
   padding: 40px 50px;
   width: min(850px, 94vw);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
   animation: modal-in 0.25s ease-out;
-  color: #fff;
+  color: #1e293b;
   border-radius: 24px;
 }
 
@@ -1178,8 +1188,7 @@
   /* Keep grid layout but maybe adjust scale if needed, for now let's force the 3-column structure 
      as requested "make it next to the board, not below" */
   .board-grid {
-    /* Scale board down slightly on smaller screens if needed, 
-       but preserve the layout structure */
+    max-width: 75vh;
   }
 }
 
@@ -1220,7 +1229,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 4px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .info-row:last-child {
@@ -1228,16 +1237,16 @@
 }
 
 .info-row span {
-  color: #a0a0b0;
+  color: #64748b;
 }
 
 .info-row strong {
-  color: #fff;
+  color: #1e293b;
 }
 
 /* Welcome Screen */
 .welcome-screen {
-  background: radial-gradient(circle at center, #2e2646 0%, #1a1625 100%);
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1251,10 +1260,11 @@
   max-width: 600px;
   text-align: center;
   padding: 40px;
-  background: rgba(30, 27, 46, 0.8);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  border-radius: 24px;
 }
 
 .mode-selection {
@@ -1274,16 +1284,17 @@
   height: auto;
   min-height: 180px;
   text-align: center;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
+  color: #1e293b !important;
 }
 
 .big-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(99, 102, 241, 0.08);
   transform: translateY(-5px);
   border-color: var(--accent);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.15);
 }
 
 .tabs button {
@@ -1301,7 +1312,7 @@
 
 .tabs button.ghost {
   border-bottom-color: transparent;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(0, 0, 0, 0.4);
 }
 
 /* Fix Center Content Interaction */

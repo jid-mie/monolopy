@@ -109,8 +109,8 @@ function resolveLanding(state, playerId, diceTotal, rentMultiplier = 1) {
         };
       }
 
-      // 80% Chance for Question
-      if (Math.random() < 0.75) {
+      // 90% Chance for Question
+      if (Math.random() < 0.90) {
         let difficulty = "easy";
         const price = square.price || 150;
         if (price >= 280) difficulty = "hard";
