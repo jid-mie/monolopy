@@ -485,7 +485,11 @@ export default function App() {
           border: '1px solid rgba(255,255,255,0.5)',
           boxShadow: '0 25px 80px rgba(0,0,0,0.25), 0 10px 30px rgba(99,102,241,0.15)',
           maxWidth: 500,
-          padding: '50px 40px'
+          padding: '50px 40px',
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
         }}>
           {/* Decorative top border */}
           <div style={{
