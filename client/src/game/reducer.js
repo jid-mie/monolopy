@@ -214,6 +214,7 @@ function resolveLanding(state, playerId, diceTotal, rentMultiplier = 1) {
   // Penalty Square - Show Modal
   if (square.type === "tax") {
     const randomPenalty = PENALTIES[Math.floor(Math.random() * PENALTIES.length)];
+    console.log("TRIGGERING PENALTY:", randomPenalty);
     return {
       ...nextState,
       phase: "penalty",
@@ -336,7 +337,7 @@ export function gameReducer(state, action) {
     nextState = movePlayer(nextState, activeId, roll.total);
     nextState = resolveLanding(nextState, activeId, roll.total);
 
-    if (["buy_decision", "question", "auction", "upgrade_decision"].includes(nextState.phase)) {
+    if (["buy_decision", "question", "auction", "upgrade_decision", "penalty"].includes(nextState.phase)) {
       return nextState;
     }
 

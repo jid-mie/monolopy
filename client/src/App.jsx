@@ -448,6 +448,10 @@ export default function App() {
       return;
     }
     if (state.phase === "post_roll") runAction({ type: "END_TURN" });
+    if (state.phase === "penalty") {
+      runAction({ type: "PENALTY_OK" });
+      return;
+    }
     if (state.phase === "question" && state.pending?.type === "question") {
       const opts = state.pending.question?.options || [];
       runAction({ type: "QUESTION_ANSWER", payload: { choiceIndex: Math.floor(Math.random() * opts.length) } });
@@ -1073,6 +1077,7 @@ export default function App() {
         </main>
       </div>
 
+      {console.log("RENDER CHECK:", state.phase, state.pending)}
       {state.phase === "penalty" && state.pending?.type === "penalty" && (
         <div className="modal-backdrop" style={{ zIndex: 9999 }}>
           <div className="modal-card" style={{ maxWidth: '700px', textAlign: 'center', border: '4px solid #ff4444' }}>
@@ -1091,7 +1096,7 @@ export default function App() {
               lineHeight: 1.3,
               textShadow: '0 2px 10px rgba(0,0,0,0.5)'
             }}>
-              {state.pending.text}
+              {state.pending.text || "Hình phạt bí ẩn..."}
             </div>
 
             <button
@@ -1517,6 +1522,19 @@ export default function App() {
           </div>
         )
       }
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        background: 'rgba(0,0,0,0.8)',
+        color: '#0f0',
+        zIndex: 10000,
+        padding: '4px',
+        fontSize: '10px',
+        pointerEvents: 'none'
+      }}>
+        DEBUG: {state.phase} | Pending: {state.pending?.type} | ID: {activePlayer?.id}
+      </div>
     </>
   );
 }
