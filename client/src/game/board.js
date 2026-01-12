@@ -67,3 +67,11 @@ export const LIQUIDITY = {
   railroads: 1.1,
   utilities: 1.05
 };
+
+export const PENALTIES = [
+  "Hát song ca cơn mưa tình yêu (yêu cầu một nam và một nữ bất kì trong nhóm)",
+  "Nhảy hot trend tik tok",
+  "Chống đẩy 15 cái",
+  "Squat 20 cái",
+  "Hát bài hát bất kì"
+];

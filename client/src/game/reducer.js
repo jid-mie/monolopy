@@ -13,6 +13,7 @@ import {
   sendToJail,
   JAIL_BAIL
 } from "./engine.js";
+import { PENALTIES } from "./board.js";
 import { CHANCE_CARDS, CHEST_CARDS } from "./cards.js";
 import { QUESTIONS } from "./questions.js";
 
@@ -210,14 +211,19 @@ function resolveLanding(state, playerId, diceTotal, rentMultiplier = 1) {
     return logWithLimit(nextState, `${nextState.players[playerId].name} trả $${rent} tiền thuê cho ${nextState.players[info.ownerId].name}.`);
   }
 
-  // Tax Square - NO Question, direct payment
+  // Penalty Square - Show Modal
   if (square.type === "tax") {
-    nextState = updatePlayer(nextState, playerId, (player) => ({
-      ...player,
-      cash: player.cash - square.amount
-    }));
-    nextState = { ...nextState, lastCreditorId: null };
-    return logWithLimit(nextState, `${nextState.players[playerId].name} trả $${square.amount} tiền thuế.`);
+    const randomPenalty = PENALTIES[Math.floor(Math.random() * PENALTIES.length)];
+    return {
+      ...nextState,
+      phase: "penalty",
+      pending: {
+        type: "penalty",
+        squareId: square.id,
+        amount: square.amount,
+        text: randomPenalty
+      }
+    };
   }
 
   if (square.type === "chance" || square.type === "chest") {
@@ -907,6 +913,24 @@ export function gameReducer(state, action) {
     };
 
     return logWithLimit(nextState, `${state.players[activeId].name} trả $${rent} tiền thuê cho ${state.players[ownerId].name}.`);
+  }
+
+  if (action.type === "PENALTY_OK") {
+    if (state.phase !== "penalty" || state.pending?.type !== "penalty") return state;
+
+    // Deduct money (if desired, based on board data)
+    const amount = state.pending.amount || 0;
+    const nextState = updatePlayer(state, activeId, (player) => ({
+      ...player,
+      cash: player.cash - amount
+    }));
+
+    const description = state.pending.text;
+    return logWithLimit({
+      ...nextState,
+      phase: "post_roll",
+      pending: null
+    }, `${state.players[activeId].name} chấp nhận hình phạt: "${description}" và nộp phạt $${amount}.`);
   }
 
   return state;
