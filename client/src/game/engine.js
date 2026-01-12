@@ -122,8 +122,8 @@ export function calculateRent(state, squareId, diceTotal, rentMultiplier = 1) {
   }
 
   if (square.type === "railroad") {
-    const count = countOwnedByType(state, info.ownerId, RAILROADS);
-    return square.rent[count - 1] * rentMultiplier;
+    // Fixed rent regardless of how many owned, as requested
+    return (square.rent || 100) * rentMultiplier;
   }
 
   if (square.type === "utility") {

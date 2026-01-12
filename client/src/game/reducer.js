@@ -214,7 +214,6 @@ function resolveLanding(state, playerId, diceTotal, rentMultiplier = 1) {
   // Penalty Square - Show Modal
   if (square.type === "tax") {
     const randomPenalty = PENALTIES[Math.floor(Math.random() * PENALTIES.length)];
-    console.log("TRIGGERING PENALTY:", randomPenalty);
     return {
       ...nextState,
       phase: "penalty",
@@ -404,7 +403,7 @@ export function gameReducer(state, action) {
       nextState = logWithLimit(nextState, `${player.name} đổ ra đôi và được ra tù.`);
       nextState = movePlayer(nextState, activeId, roll.total);
       nextState = resolveLanding(nextState, activeId, roll.total);
-      if (["buy_decision", "question", "auction", "upgrade_decision"].includes(nextState.phase)) {
+      if (["buy_decision", "question", "auction", "upgrade_decision", "penalty", "buy_back_decision"].includes(nextState.phase)) {
         return { ...nextState, doublesCount: 0 };
       }
       return { ...nextState, phase: "post_roll", doublesCount: 0 };
@@ -421,7 +420,7 @@ export function gameReducer(state, action) {
       nextState = logWithLimit(nextState, `${player.name} trả $${JAIL_BAIL} sau 3 lượt trong tù.`);
       nextState = movePlayer(nextState, activeId, roll.total);
       nextState = resolveLanding(nextState, activeId, roll.total);
-      if (["buy_decision", "question", "auction", "upgrade_decision"].includes(nextState.phase)) {
+      if (["buy_decision", "question", "auction", "upgrade_decision", "penalty", "buy_back_decision"].includes(nextState.phase)) {
         return { ...nextState, doublesCount: 0 };
       }
       return { ...nextState, phase: "post_roll", doublesCount: 0 };

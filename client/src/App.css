@@ -441,7 +441,7 @@
 /* Main Grid: Left Sidebar + Board + Right Sidebar */
 .main-grid {
   display: grid;
-  grid-template-columns: 320px minmax(0, 1fr) 340px;
+  grid-template-columns: 320px minmax(0, 1fr) 440px;
   gap: 24px;
   align-items: start;
   height: calc(100vh - 100px);
@@ -453,7 +453,7 @@
   gap: 16px;
   overflow-y: auto;
   max-height: 100%;
-  padding-right: 4px;
+  padding: 16px;
 }
 
 .right-panel {
@@ -461,8 +461,9 @@
   flex-direction: column;
   gap: 16px;
   overflow-y: auto;
+  overflow-x: visible;
   max-height: 100%;
-  padding-right: 4px;
+  padding: 24px;
 }
 
 .board-panel {
@@ -471,6 +472,7 @@
   /* Center vertically again */
   justify-content: center;
   height: 100%;
+  padding: 0 20px;
   padding-top: 0;
 }
 
@@ -482,8 +484,10 @@
   background: transparent;
   padding: 0;
   width: 100%;
-  max-width: 80vh;
-  /* Reduced from 88vh to avoid header overlap */
+  height: auto;
+  max-width: 90vh;
+  max-height: none;
+  /* Increased size for better visibility */
   aspect-ratio: 1/1;
   position: relative;
   z-index: 100;
@@ -585,7 +589,7 @@
 }
 
 .square-name {
-  font-size: 10px;
+  font-size: 13px;
   /* Larger font */
   font-weight: 700;
   text-transform: uppercase;
@@ -599,7 +603,7 @@
 }
 
 .square-price {
-  font-size: 10px;
+  font-size: 13px;
   /* Larger font */
   font-weight: 700;
   color: #475569;
@@ -609,9 +613,9 @@
 }
 
 .square-icon {
-  width: 18px;
+  width: 28px;
   /* Slightly smaller to give text space */
-  height: 18px;
+  height: 28px;
   margin: auto;
   color: rgba(0, 0, 0, 0.5);
 }
@@ -811,24 +815,37 @@
 
 /* 3D Dice Styling */
 .dice-face {
-  width: 55px;
-  height: 55px;
-  background: linear-gradient(145deg, #ffffff 0%, #f5f5ff 50%, #e8efff 100%);
-  border: 3px solid #ffd700;
-  border-radius: 12px;
+  width: 76px;
+  height: 76px;
+  background: radial-gradient(circle at 30% 30%, #ffffff 0%, #e6e6f0 50%, #b0b0c0 100%);
+  border: none;
+  border-radius: 18px;
   box-shadow:
-    0 0 20px rgba(255, 215, 0, 0.6),
-    0 8px 20px rgba(0, 0, 0, 0.4),
-    inset 0 3px 6px rgba(255, 255, 255, 0.9);
+    inset 4px 4px 8px rgba(255, 255, 255, 1),
+    inset -4px -4px 10px rgba(174, 174, 192, 0.4),
+    0 15px 35px rgba(0, 0, 0, 0.2),
+    0 5px 15px rgba(0, 0, 0, 0.1);
+  transform-style: preserve-3d;
+  position: relative;
+}
+
+.dice-face::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.8);
+  pointer-events: none;
 }
 
 .dice-face .pip {
-  width: 10px;
-  height: 10px;
-  background: linear-gradient(145deg, #2d2d4a 0%, #000000 100%);
+  width: 15px;
+  height: 15px;
+  background: radial-gradient(circle at 30% 30%, #444 0%, #000 100%);
   box-shadow:
-    inset 0 1px 2px rgba(255, 255, 255, 0.3),
-    0 1px 3px rgba(0, 0, 0, 0.5);
+    inset 1px 1px 3px rgba(0, 0, 0, 0.8),
+    0 1px 0 rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
 }
 
 .type-badge {
@@ -919,17 +936,18 @@
   margin-top: auto;
   flex-wrap: wrap;
   z-index: 5;
+  background: transparent !important;
 }
 
 .token {
-  width: 26px;
-  height: 26px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: 2px solid #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 16px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
   transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0));
@@ -941,6 +959,9 @@
   transform: scale(1.15);
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--accent), 0 0 12px var(--accent);
   animation: token-bounce 1.5s infinite;
+  border-radius: 50%;
+  background-color: transparent;
+  /* Just in case */
 }
 
 @keyframes token-bounce {
@@ -1440,4 +1461,277 @@
   .join-mode-row {
     flex-direction: column;
   }
+}
+
+/* HOTFIX: Remove background artifacts from position arrows and active cells */
+.position-arrow,
+.position-arrow svg,
+.position-arrow * {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.position-arrow::before,
+.position-arrow::after {
+  display: none !important;
+}
+
+/* Ensure active cell overlay doesn't block text */
+.board-cell.active::before,
+.board-cell.active::after,
+.board-square.active::before,
+.board-square.active::after {
+  background: transparent !important;
+  content: none !important;
+}
+
+/* Ensure text is above any possible overlay */
+.square-name,
+.square-price {
+  position: relative;
+  z-index: 105;
+}
+
+/* UNIVERSAL FIX for Token Artifacts */
+.token-row {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.token {
+  border-radius: 50% !important;
+  -webkit-border-radius: 50% !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+  /* Keep shadow but ensure execution */
+}
+
+.token.active-token {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--accent), 0 0 12px var(--accent) !important;
+}
+
+/* Remove any weird pseudo-elements on tokens */
+.token::before,
+.token::after {
+  content: none !important;
+  /* Unless used for specific effect, but check if they cause white box */
+}
+
+/* MODERN BOARD UI UPGRADE */
+.board-cell {
+  background: linear-gradient(145deg, #ffffff 0%, #f0f2f5 100%);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.01);
+}
+
+.board-cell.corner {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+/* Specific Cell Glows */
+.board-cell.type-chance,
+.board-cell.type-community_chest {
+  background: linear-gradient(135deg, #fffff0 0%, #fff8e1 100%);
+}
+
+.board-cell.type-tax {
+  background: linear-gradient(135deg, #fff5f5 0%, #ffebee 100%);
+}
+
+.board-cell.type-railroad {
+  background: linear-gradient(135deg, #f3f0ff 0%, #e0d4fc 100%);
+}
+
+.board-cell.type-utility {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+}
+
+/* Enhanced Color Strip */
+.color-strip {
+  height: 8px;
+  box-shadow: 0 0 8px var(--cell-color);
+  opacity: 0.95;
+}
+
+/* Active Glow Enhancement */
+.board-square.active {
+  background: #ffffff !important;
+  /* Keep active cell clean */
+  box-shadow: 0 0 0 3px #fff, 0 0 25px var(--accent) !important;
+}
+
+/* HOTFIX: Hide center grid cells */
+.board-grid>div:not([class*="type-"]):not(.board-cell) {
+  visibility: hidden;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* If center cells have .board-cell but no specific type */
+.board-cell:not([class*="type-"]):not(.corner) {
+  /* This selector might be too aggressive if some real cells lack 'type-' class */
+  /* But usually 'type-property', 'type-chance' etc exist */
+  /* Let's try targeting by emptiness if possible, or specific grid areas */
+}
+
+/* Better approach: Target specific center area if possible, or relies on the fact that center cells are empty */
+/* Assuming center cells are just empty divs in the grid loop */
+.board-grid>div:empty {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  pointer-events: none;
+}
+
+/* FIX: Hide center dummy cells */
+.board-cell.board-center {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  pointer-events: none;
+  visibility: hidden;
+  /* Ensure they are completely invisible */
+}
+
+/* CRITICAL FIX: Restore Board Center Content */
+.board-center-content {
+  visibility: visible !important;
+  opacity: 1 !important;
+  background: transparent !important;
+  z-index: 200 !important;
+  /* Ensure on top */
+}
+
+.center-controls,
+.center-msg,
+.center-btn {
+  pointer-events: auto !important;
+  visibility: visible !important;
+}
+
+/* REVISION: Premium Minimalist Board Style */
+.board-cell {
+  background: #FFFFFF !important;
+  /* Pure clean white */
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08) !important;
+  /* Subtle inner border */
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.board-cell:hover {
+  background: #FFFFFF !important;
+  transform: translateY(-8px) scale(1.1) !important;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+  z-index: 100 !important;
+}
+
+/* Remove distracting gradients from special cells */
+.board-cell.type-chance,
+.board-cell.type-community_chest,
+.board-cell.type-tax,
+.board-cell.type-railroad,
+.board-cell.type-utility {
+  background: #FFFFFF !important;
+}
+
+/* Subtle distinction for corners */
+.board-cell.corner {
+  background: #F1F5F9 !important;
+  /* Very light cool grey for corners */
+  font-weight: 800;
+  color: #334155;
+}
+
+/* Make text crisp */
+.square-name {
+  color: #1e293b;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.square-price {
+  color: #64748b;
+  font-weight: 600;
+}
+/* SPECIAL CELLS ENHANCEMENT */
+
+/* Cơ Hội - Vàng Rực Rỡ */
+.board-cell.type-chance {
+  background: linear-gradient(145deg, #fffbeb 0%, #FEF3C7 100%) !important;
+  border: 1px solid #FCD34D !important;
+}
+.board-cell.type-chance .square-icon {
+  color: #D97706 !important;
+  transform: scale(1.3);
+  filter: drop-shadow(0 2px 5px rgba(217, 119, 6, 0.4));
+  transition: transform 0.3s;
+}
+
+/* Rương Kho Báu - Xanh Ngọc */
+.board-cell.type-chest {
+  background: linear-gradient(145deg, #eff6ff 0%, #DBEAFE 100%) !important;
+  border: 1px solid #93C5FD !important;
+}
+.board-cell.type-chest .square-icon {
+  color: #2563EB !important;
+  transform: scale(1.3);
+  filter: drop-shadow(0 2px 5px rgba(37, 99, 235, 0.4));
+  transition: transform 0.3s;
+}
+
+/* Thử Thách - Tím Huyền Bí */
+.board-cell.type-challenge {
+  background: linear-gradient(145deg, #faf5ff 0%, #F3E8FF 100%) !important;
+  border: 1px solid #D8B4FE !important;
+}
+.board-cell.type-challenge .square-icon {
+  color: #9333EA !important;
+  transform: scale(1.3);
+  filter: drop-shadow(0 2px 5px rgba(147, 51, 234, 0.4));
+  transition: transform 0.3s;
+}
+
+/* Hình Phạt / Thuế - Đỏ Cảnh Báo */
+.board-cell.type-tax {
+  background: linear-gradient(145deg, #fef2f2 0%, #FEE2E2 100%) !important;
+  border: 1px solid #FCA5A5 !important;
+}
+.board-cell.type-tax .square-icon {
+  color: #DC2626 !important;
+  transform: scale(1.3);
+  filter: drop-shadow(0 2px 5px rgba(220, 38, 38, 0.4));
+  transition: transform 0.3s;
+}
+
+/* Animation nhẹ khi hover vào các ô đặc biệt */
+.board-cell.type-chance:hover .square-icon,
+.board-cell.type-chest:hover .square-icon,
+.board-cell.type-challenge:hover .square-icon,
+.board-cell.type-tax:hover .square-icon {
+  transform: scale(1.5) rotate(5deg);
+}
+
+/* Tên ô đặc biệt đậm hơn */
+.type-chance .square-name,
+.type-chest .square-name,
+.type-challenge .square-name,
+.type-tax .square-name {
+  font-weight: 800;
+  opacity: 0.9;
+  font-size: 11px; /* Nhỏ lại xíu để vừa icon to */
+  margin-top: 4px;
+}
+
+/* TỐI ƯU HIỆU NĂNG (Client-side) */
+/* Giúp browser sử dụng Card đồ họa để render chuyển động -> Mượt hơn trên máy yếu */
+.token, .active-token, .dice-face {
+  will-change: transform;
+  transform: translateZ(0); 
+}
+
+/* Cô lập tính toán layout cho bàn cờ -> Giúp browser không phải tính lại cả trang khi có thay đổi nhỏ */
+.board-grid {
+  contain: layout style;
 }

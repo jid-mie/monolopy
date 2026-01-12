@@ -30,7 +30,7 @@
 
 body {
   margin: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 40%, #a855f7 70%, #ec4899 100%);
+  background: radial-gradient(circle at top, #334155, #0f172a);
   background-attachment: fixed;
   color: var(--ink);
   min-height: 100vh;

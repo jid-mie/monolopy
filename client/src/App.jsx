@@ -147,6 +147,7 @@ export default function App() {
   const [auctionBid, setAuctionBid] = useState(0);
   const [selectedSquareId, setSelectedSquareId] = useState(0);
   const [orderModeLocal, setOrderModeLocal] = useState("sequential");
+  const [playerAIs, setPlayerAIs] = useState(Array(6).fill(false));
   const [buyBackId, setBuyBackId] = useState("");
 
   const state = mode === "online"
@@ -234,7 +235,6 @@ export default function App() {
     }
     if (socketRef.current) return;
     const socketUrl = import.meta.env.VITE_SERVER_URL || undefined;
-    console.log("Initializing socket...");
     const socket = io(socketUrl, {
       path: "/socket.io",
       transports: ["websocket", "polling"], // Enable WS for performance
@@ -243,7 +243,6 @@ export default function App() {
     socketRef.current = socket;
 
     socket.on("connect", () => {
-      console.log("✅ Socket Connected! ID:", socket.id);
       setRoomError("");
     });
 
@@ -252,7 +251,6 @@ export default function App() {
       setRoomError("Lỗi kết nối Server: " + err.message);
     });
     socket.on("room_joined", (payload) => {
-      console.log("🔥 ROOM JOINED PAYLOAD:", payload); // Look for this in console
       setRoomInfo(payload);
       setYouId(payload.youId);
       setRoomError("");
@@ -297,9 +295,7 @@ export default function App() {
       const pingInterval = setInterval(() => {
         const url = import.meta.env.VITE_SERVER_URL;
         if (url) {
-          console.log("[KeepAlive] Pinging server...");
           fetch(url, { mode: 'no-cors' }) // no-cors to avoid CORS errors if just pinging
-            .then(() => console.log("[KeepAlive] Ping sent."))
             .catch(e => console.warn("[KeepAlive] Ping failed:", e));
         }
       }, 4 * 60 * 1000); // 4 minutes (safe margin < 15 mins)
@@ -363,13 +359,6 @@ export default function App() {
   };
 
   const createRoom = () => {
-    console.log("createRoom called", {
-      nickname,
-      presentationMode,
-      teamCount,
-      socketExists: !!socketRef.current,
-      connected: socketRef.current?.connected
-    });
 
     if (!nickname.trim()) {
       alert("Vui lòng nhập tên hiển thị.");
@@ -462,6 +451,17 @@ export default function App() {
   const selectedInfo = state.properties?.[selectedSquareId];
   const selectedOwner = selectedInfo?.ownerId != null ? state.players?.[selectedInfo.ownerId]?.name : "Chưa có chủ";
 
+  let currentRent = null;
+  if (selectedSquare && selectedInfo?.ownerId != null) {
+    if (selectedSquare.type === "railroad") {
+      currentRent = selectedSquare.rent;
+    } else if (selectedSquare.type === "utility") {
+      const uIds = [12, 28];
+      const ownedCount = uIds.filter(id => state.properties[id]?.ownerId === selectedInfo.ownerId).length;
+      currentRent = ownedCount === 2 ? 10 : 4;
+    }
+  }
+
   const squareInfo = selectedSquare ? {
     id: selectedSquareId,
     name: selectedSquare.name,
@@ -471,6 +471,7 @@ export default function App() {
     mortgage: selectedSquare.mortgage,
     tax: selectedSquare.amount,
     rent: selectedSquare.rent,
+    currentRent: currentRent,
     houseCost: selectedSquare.houseCost,
     owner: selectedInfo ? selectedOwner : null,
     houses: selectedInfo ? selectedInfo.houses : 0,
@@ -504,48 +505,73 @@ export default function App() {
           }} />
 
           {/* Logo/Icon */}
+          {/* Realistic 3D Dice Icon */}
           <div style={{
-            fontSize: '4rem',
-            marginBottom: '16px',
-            filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))'
-          }}>🎲</div>
+            width: 96, height: 96, margin: '0 auto 16px',
+            background: 'radial-gradient(circle at 30% 30%, #ffffff 0%, #e6e6f0 100%)',
+            borderRadius: 24,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '3.5rem',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(255,255,255,0.8)',
+            transform: 'rotate(-10deg) perspective(500px) rotateY(10deg)',
+            position: 'relative'
+          }}>
+            <span style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}>🎲</span>
+          </div>
 
           <h1 style={{
-            fontSize: "2.8rem",
+            fontSize: "3.2rem",
             marginBottom: "0.5rem",
-            background: 'linear-gradient(135deg, #1e293b 0%, #6366f1 50%, #a855f7 100%)',
-            backgroundClip: 'text',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
             fontWeight: 800,
-            letterSpacing: '-1px'
-          }}>Cờ Tỷ Phú</h1>
+            letterSpacing: '-1px',
+            color: '#8b5cf6', // Fallback
+            textShadow: '0 10px 30px rgba(139, 92, 246, 0.3)'
+          }}>
+            <span style={{
+              background: 'linear-gradient(135deg, #3730a3 0%, #8b5cf6 50%, #c084fc 100%)',
+              WebkitBackgroundClip: 'text',
+              backgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              display: 'inline-block'
+            }}>
+              Cờ Tỷ Phú
+            </span>
+          </h1>
 
           <p style={{
-            marginBottom: "2.5rem",
+            marginBottom: "3rem",
             color: '#64748b',
-            fontSize: '1rem'
+            fontSize: '1.1rem',
+            fontWeight: 500
           }}>Trò chơi kiến thức hấp dẫn</p>
 
           <button
             className="primary big-btn"
             onClick={() => setMode("online")}
             style={{
-              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%)',
+              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
               border: 'none',
-              padding: '24px 48px',
-              borderRadius: 16,
-              boxShadow: '0 10px 40px rgba(99,102,241,0.4)',
+              padding: '28px 24px',
+              borderRadius: 24,
+              boxShadow: '0 20px 40px -10px rgba(99,102,241,0.5)',
               cursor: 'pointer',
-              transition: 'all 0.3s ease',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               width: '100%',
-              maxWidth: 320
+              maxWidth: 360,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 8,
+              position: 'relative',
+              overflow: 'hidden'
             }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px) scale(1.02)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0) scale(1)'}
           >
-            <div style={{ fontSize: "2rem", marginBottom: 8 }}>🌍</div>
-            <div style={{ color: '#fff' }}>
-              <strong style={{ fontSize: '1.2rem', display: 'block', marginBottom: 4 }}>Bắt Đầu Chơi</strong>
-              <div style={{ fontSize: "0.85rem", opacity: 0.9 }}>Tạo phòng và mời bạn bè</div>
+            <div style={{ fontSize: "2.5rem", filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.2))" }}>🌍</div>
+            <div style={{ color: '#fff', textAlign: 'center' }}>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: 2 }}>Bắt Đầu Chơi</div>
+              <div style={{ fontSize: "0.9rem", opacity: 0.9, fontWeight: 500 }}>Tạo phòng và mời bạn bè</div>
             </div>
           </button>
         </div>
@@ -747,10 +773,16 @@ export default function App() {
                         </div>
                       )}
 
-                      {selectedSquare.type !== "property" && squareInfo?.rent !== undefined && (
-                        <div className="info-row">
-                          <span>{selectedSquare.type === "utility" ? "Hệ số:" : "Tiền thuê:"}</span>
-                          <strong>{selectedSquare.type === "utility" ? `${squareInfo.rent}x` : formatMoney(squareInfo.rent)}</strong>
+                      {selectedSquare.type !== "property" && (selectedSquare.type === "railroad" || squareInfo?.rent !== undefined) && (
+                        <div className="info-row" style={{ alignItems: "flex-start" }}>
+                          <span style={{ marginTop: 2 }}>
+                            {selectedSquare.type === "utility" && squareInfo.currentRent ? "Hệ số hiện tại:" : selectedSquare.type === "utility" ? "Hệ số:" : "Tiền thuê:"}
+                          </span>
+                          <strong>
+                            {selectedSquare.type === "utility"
+                              ? (squareInfo.currentRent ? `${squareInfo.currentRent}x` : "4x / 10x")
+                              : formatMoney(squareInfo.currentRent || selectedSquare.rent)}
+                          </strong>
                         </div>
                       )}
 
@@ -870,10 +902,16 @@ export default function App() {
                     z-index: 100;
                   }
                   .center-msg {
-                    font-size: 14px;
-                    color: rgba(255,255,255,0.7);
+                    font-size: 20px;
+                    font-weight: 600;
+                    color: #ffffff;
                     text-align: center;
-                    margin-bottom: 8px;
+                    margin-bottom: 12px;
+                    background: rgba(0,0,0,0.4);
+                    padding: 12px 24px;
+                    border-radius: 30px;
+                    backdrop-filter: blur(8px);
+                    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
                   }
                   .center-btn {
                     padding: 12px 24px;
@@ -886,7 +924,8 @@ export default function App() {
                   <div className="center-msg">
                     Lượt của <strong style={{
                       color: playerColors[state.activePlayerIndex % playerColors.length],
-                      textShadow: `0 0 12px ${playerColors[state.activePlayerIndex % playerColors.length]}`
+                      textShadow: `0 0 16px ${playerColors[state.activePlayerIndex % playerColors.length]}, 0 0 30px ${playerColors[state.activePlayerIndex % playerColors.length]}`,
+                      fontSize: '24px'
                     }}>
                       {activePlayer.name}
                     </strong>
@@ -899,14 +938,12 @@ export default function App() {
 
                     return (
                       <>
-                        {state.roll && displayRoll && (
-                          <div className="dice-readout" style={{ justifyContent: "center", marginBottom: 16 }}>
-                            <div className={`dice-pair ${isRolling ? "rolling" : ""}`}>
-                              <DiceFace value={displayRoll.die1} />
-                              <DiceFace value={displayRoll.die2} />
-                            </div>
+                        <div className="dice-readout" style={{ justifyContent: "center", marginBottom: 16 }}>
+                          <div className={`dice-pair ${isRolling ? "rolling" : ""}`} style={{ opacity: (state.roll || isRolling) ? 1 : 0.8, filter: (state.roll || isRolling) ? 'none' : 'grayscale(50%)' }}>
+                            <DiceFace value={displayRoll ? displayRoll.die1 : 6} />
+                            <DiceFace value={displayRoll ? displayRoll.die2 : 6} />
                           </div>
-                        )}
+                        </div>
 
                         {!canControl ? (
                           <div className="center-msg" style={{ marginTop: 20, color: "var(--accent)" }}>Đang ở chế độ khán giả</div>
@@ -922,11 +959,11 @@ export default function App() {
                         )}
 
                         {state.phase === "buy_decision" && state.pending?.squareId !== undefined && (
-                          <div className="decision-box" style={{ background: "rgba(255, 255, 255, 0.95)", border: "1px solid rgba(99, 102, 241, 0.2)", backdropFilter: "blur(12px)", color: "#1e293b", borderRadius: 16, padding: 20, boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}>
-                            <div className="decision-title">Mua {BOARD[state.pending.squareId].name}?</div>
-                            <div className="decision-actions">
-                              <button className="primary" onClick={() => dispatchAction({ type: "BUY" })}>Mua</button>
-                              <button className="ghost" onClick={() => dispatchAction({ type: "DECLINE_BUY" })}>Bỏ qua</button>
+                          <div className="decision-box" style={{ background: "rgba(255, 255, 255, 0.95)", border: "1px solid rgba(99, 102, 241, 0.2)", backdropFilter: "blur(12px)", color: "#1e293b", borderRadius: 24, padding: 40, boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)", minWidth: 420 }}>
+                            <div className="decision-title" style={{ fontSize: "2rem", marginBottom: 24, textAlign: "center" }}>Mua {BOARD[state.pending.squareId].name}?</div>
+                            <div className="decision-actions" style={{ flexDirection: 'column', gap: 16 }}>
+                              <button className="primary" style={{ fontSize: "1.3rem", padding: "16px 32px", width: "100%" }} onClick={() => dispatchAction({ type: "BUY" })}>Mua</button>
+                              <button className="ghost" style={{ fontSize: "1.1rem", padding: "12px", width: "100%" }} onClick={() => dispatchAction({ type: "DECLINE_BUY" })}>Bỏ qua</button>
                             </div>
                           </div>
                         )}
@@ -1025,7 +1062,7 @@ export default function App() {
 
             <div className="panel card" style={{ maxHeight: "40%", display: 'flex', flexDirection: 'column', overflow: "hidden" }}>
               <h2 style={{ margin: "0 0 12px 0", flexShrink: 0, color: "#1e293b" }}>Tài chính</h2>
-              <div className="finance-list" style={{ flex: 1, overflowY: "auto", display: 'flex', flexDirection: 'column', gap: 12, paddingRight: 4 }}>
+              <div className="finance-list" style={{ flex: 1, overflowY: "auto", display: 'flex', flexDirection: 'column', gap: 12, padding: "8px 12px" }}>
                 {state.players && state.players.length > 0 ? (
                   state.players
                     .slice()
@@ -1041,7 +1078,7 @@ export default function App() {
                             : 'rgba(255, 255, 255, 0.85)',
                           backdropFilter: 'blur(8px)',
                           borderRadius: 12,
-                          padding: 16,
+                          padding: 24,
                           border: isActive
                             ? `3px solid ${pColor}`
                             : '1px solid rgba(255, 255, 255, 0.5)',
@@ -1055,16 +1092,16 @@ export default function App() {
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                               <div className="player-avatar" style={{
-                                width: 36, height: 36, borderRadius: 10,
+                                width: 48, height: 48, borderRadius: 12,
                                 backgroundColor: playerColors[p.id % playerColors.length],
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: '1.4rem', boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                                fontSize: '1.8rem', boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
                                 border: '2px solid #fff', color: '#fff'
                               }}>
                                 {p.name.startsWith("Nhóm ") ? <span style={{ fontWeight: 800 }}>{p.name.split(" ")[1]}</span> : playerIcons[p.id % playerIcons.length]}
                               </div>
                               <div>
-                                <div style={{ fontWeight: '700', fontSize: '0.95rem', color: '#1e293b', letterSpacing: '0.02em' }}>{p.name}</div>
+                                <div style={{ fontWeight: '700', fontSize: '1.2rem', color: '#1e293b', letterSpacing: '0.02em' }}>{p.name}</div>
                                 {p.id === activePlayer?.id && (
                                   <div style={{ fontSize: '0.65rem', color: '#6366f1', textTransform: 'uppercase', fontWeight: 600, marginTop: 2 }}>
                                     ● Đang chơi
@@ -1073,8 +1110,8 @@ export default function App() {
                               </div>
                             </div>
                             <div style={{ textAlign: 'right' }}>
-                              <div style={{ fontSize: '0.65rem', color: 'rgba(0,0,0,0.4)', textTransform: 'uppercase', fontWeight: 600, marginBottom: 2 }}>Tài sản</div>
-                              <div style={{ color: p.cash < 0 ? '#ef4444' : '#10b981', fontSize: '1.2rem', fontWeight: '800', fontFamily: 'monospace' }}>
+                              <div style={{ fontSize: '0.8rem', color: 'rgba(0,0,0,0.4)', textTransform: 'uppercase', fontWeight: 600, marginBottom: 2 }}>Tài sản</div>
+                              <div style={{ color: p.cash < 0 ? '#ef4444' : '#10b981', fontSize: '1.5rem', fontWeight: '800', fontFamily: 'monospace' }}>
                                 {formatMoney(p.cash)}
                               </div>
                             </div>
@@ -1121,7 +1158,6 @@ export default function App() {
         </main>
       </div >
 
-      {console.log("RENDER CHECK:", state.phase, state.pending)}
       {
         state.phase === "penalty" && state.pending?.type === "penalty" && (
           <div className="modal-backdrop" style={{ zIndex: 9999 }}>

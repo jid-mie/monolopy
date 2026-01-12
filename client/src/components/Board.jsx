@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 
 const colorMap = {
-  brown: "#8d5a3b",
-  lightblue: "#8cc7e8",
-  pink: "#d17bb7",
-  orange: "#f39c32",
-  red: "#cf3f3f",
-  yellow: "#f2d94e",
-  green: "#3b8f5a",
-  darkblue: "#2150a0"
+  brown: "#8D6E63",      // Warm Cocoa
+  lightblue: "#81D4FA",  // Sky Blue
+  pink: "#F48FB1",       // Pastel Pink
+  orange: "#FFB74D",     // Soft Orange
+  red: "#EF5350",        // Vibrant Red
+  yellow: "#FFF176",     // Bright Yellow
+  green: "#66BB6A",      // Fresh Green
+  darkblue: "#42A5F5"    // Ocean Blue
 };
 
 const typeLabels = {
