@@ -1073,54 +1073,23 @@ export default function App() {
         </main>
       </div>
 
-      {state.phase === "question" && state.pending?.type === "question" && (
-        <div className="modal-backdrop">
-          <div className="modal-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h2 style={{ margin: 0 }}>Câu hỏi</h2>
-              <div style={{
-                width: '60px',
-                height: '60px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1.8rem',
-                fontWeight: '800',
-                background: questionTimer <= 5 ? 'linear-gradient(135deg, #ff4444 0%, #cc0000 100%)' :
-                  questionTimer <= 10 ? 'linear-gradient(135deg, #ffaa00 0%, #ff6600 100%)' :
-                    'linear-gradient(135deg, #44ff44 0%, #00cc00 100%)',
-                color: '#fff',
-                boxShadow: questionTimer <= 5 ? '0 0 20px rgba(255, 68, 68, 0.6)' : '0 4px 12px rgba(0,0,0,0.3)',
-                animation: questionTimer <= 5 ? 'pulse 0.5s infinite' : 'none'
-              }}>
-                {questionTimer}
-              </div>
-            </div>
-            <div className="player-meta">Độ khó: {state.pending.question?.difficulty === "hard" ? "Khó" : state.pending.question?.difficulty === "medium" ? "Trung bình" : "Dễ"}</div>
-          </div>
-        </div>
-      )}
-
       {state.phase === "penalty" && state.pending?.type === "penalty" && (
         <div className="modal-backdrop">
-          <div className="modal-card" style={{ maxWidth: '600px', textAlign: 'center', border: '2px solid #ff4444' }}>
-            <div style={{ fontSize: '4rem', marginBottom: '16px' }}>😈</div>
-            <h2 style={{ fontSize: '2.5rem', color: '#ff4444', marginBottom: '8px' }}>HÌNH PHẠT!</h2>
-            <p style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.7)', marginBottom: '24px' }}>
-              Bạn đã rơi vào ô phạt. Hãy thực hiện thử thách sau hoặc nộp phạt.
-            </p>
+          <div className="modal-card" style={{ maxWidth: '700px', textAlign: 'center', border: '4px solid #ff4444', animation: 'popIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28)' }}>
+            <div style={{ fontSize: '5rem', marginBottom: '10px' }}>😈</div>
+            <h2 style={{ fontSize: '3rem', color: '#ff4444', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '2px' }}>HÌNH PHẠT!</h2>
 
             <div style={{
               background: 'rgba(255, 68, 68, 0.1)',
-              border: '1px solid rgba(255, 68, 68, 0.3)',
-              borderRadius: '12px',
-              padding: '24px',
-              marginBottom: '24px',
-              fontSize: '1.5rem',
-              fontWeight: 'bold',
+              border: '2px dashed rgba(255, 68, 68, 0.5)',
+              borderRadius: '20px',
+              padding: '40px',
+              marginBottom: '32px',
+              fontSize: '2.5rem',
+              fontWeight: '900',
               color: '#fff',
-              lineHeight: 1.4
+              lineHeight: 1.3,
+              textShadow: '0 2px 10px rgba(0,0,0,0.5)'
             }}>
               {state.pending.text}
             </div>
@@ -1128,15 +1097,16 @@ export default function App() {
             <button
               className="primary"
               style={{
-                width: '100%',
-                padding: '16px',
-                fontSize: '1.2rem',
+                width: '200px',
+                padding: '20px',
+                fontSize: '1.5rem',
                 backgroundColor: '#ff4444',
-                boxShadow: '0 4px 12px rgba(255, 68, 68, 0.4)'
+                boxShadow: '0 4px 12px rgba(255, 68, 68, 0.4)',
+                borderRadius: '50px'
               }}
               onClick={() => dispatchAction({ type: "PENALTY_OK" })}
             >
-              ĐÃ THỰC HIỆN
+              OK
             </button>
           </div>
         </div>
