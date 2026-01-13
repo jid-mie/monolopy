@@ -948,93 +948,95 @@ export default function App() {
                         {!canControl ? (
                           <div className="center-msg" style={{ marginTop: 20, color: "var(--accent)" }}>Đang ở chế độ khán giả</div>
                         ) : (
-                          <div className="button-row" style={{ width: "auto" }}>
-                            {state.phase === "await_roll" && (
-                              <button className="primary center-btn" onClick={() => dispatchAction({ type: "ROLL" })}>Đổ xúc xắc</button>
-                            )}
-                            {state.phase === "post_roll" && (
-                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, width: '100%' }}>
-                                <div style={{ color: 'var(--accent)', fontSize: '0.9rem', fontWeight: 600, animation: 'fadeIn 0.5s' }}>Hoàn thành lượt đi</div>
-                                <button className="primary center-btn pulse-btn" onClick={() => dispatchAction({ type: "END_TURN" })}>
-                                  Kết thúc lượt ➜
-                                </button>
+                          <>
+                            <div className="button-row" style={{ width: "auto" }}>
+                              {state.phase === "await_roll" && (
+                                <button className="primary center-btn" onClick={() => dispatchAction({ type: "ROLL" })}>Đổ xúc xắc</button>
+                              )}
+                              {state.phase === "post_roll" && (
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, width: '100%' }}>
+                                  <div style={{ color: 'var(--accent)', fontSize: '0.9rem', fontWeight: 600, animation: 'fadeIn 0.5s' }}>Hoàn thành lượt đi</div>
+                                  <button className="primary center-btn pulse-btn" onClick={() => dispatchAction({ type: "END_TURN" })}>
+                                    Kết thúc lượt ➜
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+
+                            {state.phase === "buy_decision" && state.pending?.squareId !== undefined && (
+                              <div className="decision-box" style={{ background: "rgba(255, 255, 255, 0.95)", border: "1px solid rgba(99, 102, 241, 0.2)", backdropFilter: "blur(12px)", color: "#1e293b", borderRadius: 24, padding: 40, boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)", minWidth: 420 }}>
+                                <div className="decision-title" style={{ fontSize: "2rem", marginBottom: 24, textAlign: "center" }}>Mua {BOARD[state.pending.squareId].name}?</div>
+                                <div className="decision-actions" style={{ flexDirection: 'column', gap: 16 }}>
+                                  <button className="primary" style={{ fontSize: "1.3rem", padding: "16px 32px", width: "100%" }} onClick={() => dispatchAction({ type: "BUY" })}>Mua</button>
+                                  <button className="ghost" style={{ fontSize: "1.1rem", padding: "12px", width: "100%" }} onClick={() => dispatchAction({ type: "DECLINE_BUY" })}>Bỏ qua</button>
+                                </div>
                               </div>
                             )}
-                          </div>
-                        )}
 
-                        {state.phase === "buy_decision" && state.pending?.squareId !== undefined && (
-                          <div className="decision-box" style={{ background: "rgba(255, 255, 255, 0.95)", border: "1px solid rgba(99, 102, 241, 0.2)", backdropFilter: "blur(12px)", color: "#1e293b", borderRadius: 24, padding: 40, boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)", minWidth: 420 }}>
-                            <div className="decision-title" style={{ fontSize: "2rem", marginBottom: 24, textAlign: "center" }}>Mua {BOARD[state.pending.squareId].name}?</div>
-                            <div className="decision-actions" style={{ flexDirection: 'column', gap: 16 }}>
-                              <button className="primary" style={{ fontSize: "1.3rem", padding: "16px 32px", width: "100%" }} onClick={() => dispatchAction({ type: "BUY" })}>Mua</button>
-                              <button className="ghost" style={{ fontSize: "1.1rem", padding: "12px", width: "100%" }} onClick={() => dispatchAction({ type: "DECLINE_BUY" })}>Bỏ qua</button>
-                            </div>
-                          </div>
-                        )}
-
-                        {state.phase === "buy_back_decision" && state.pending?.squareId !== undefined && (
-                          <div className="decision-box" style={{ background: "rgba(255, 255, 255, 0.95)", border: "1px solid rgba(99, 102, 241, 0.2)", backdropFilter: "blur(12px)", color: "#1e293b", minWidth: 320, borderRadius: 16, padding: 20, boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}>
-                            <div className="decision-title">Mua lại {BOARD[state.pending.squareId].name}?</div>
-                            <div className="player-meta" style={{ marginBottom: 8 }}>
-                              Giá mua lại: <strong style={{ color: "#4f4" }}>{formatMoney(state.pending.buyBackCost)}</strong><br />
-                              (Tiền thuê: {formatMoney(state.pending.rent)})
-                            </div>
-                            <div className="decision-actions" style={{ flexDirection: "column" }}>
-                              <button className="primary" onClick={() => dispatchAction({ type: "BUY_OWNED_PROPERTY" })}>Mua lại</button>
-                              <button className="ghost" onClick={() => dispatchAction({ type: "DECLINE_BUY_OWNED_PROPERTY" })}>Chỉ trả thuê ({formatMoney(state.pending.rent)})</button>
-                            </div>
-                          </div>
-                        )}
-
-                        {state.phase === "upgrade_decision" && state.pending?.squareId !== undefined && (
-                          <div className="decision-box" style={{ background: "rgba(255, 255, 255, 0.95)", border: "1px solid rgba(99, 102, 241, 0.2)", backdropFilter: "blur(12px)", color: "#1e293b", borderRadius: 16, padding: 20, boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}>
-                            <div className="decision-title">Nâng cấp {BOARD[state.pending.squareId].name}?</div>
-                            <div className="player-meta">Giá: <strong>{formatMoney(BOARD[state.pending.squareId].houseCost)}</strong></div>
-                            <div className="decision-actions">
-                              <button className="primary" onClick={() => dispatchAction({ type: "UPGRADE_CONFIRM" })}>Nâng cấp</button>
-                              <button className="ghost" onClick={() => dispatchAction({ type: "UPGRADE_DECLINE" })}>Bỏ qua</button>
-                              <button className="ghost" style={{ border: "1px solid #ff5252", color: "#ff5252" }} onClick={() => dispatchAction({ type: "SELL_PROPERTY", payload: { squareId: state.pending.squareId } })}>Bán (${BOARD[state.pending.squareId].price})</button>
-                            </div>
-                          </div>
-                        )}
-
-                        {state.phase === "auction" && state.pending && (
-                          <div className="decision-box" style={{ background: "rgba(255, 255, 255, 0.95)", border: "1px solid rgba(99, 102, 241, 0.2)", backdropFilter: "blur(12px)", color: "#1e293b", minWidth: 280, borderRadius: 16, padding: 20, boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}>
-                            <div className="decision-title">Đấu giá: {BOARD[state.pending.squareId].name}</div>
-                            <div className="player-meta">Giá cao nhất: <strong style={{ color: "#4f4" }}>{formatMoney(state.pending.highestBid)}</strong></div>
-                            <div className="player-meta">Người giữ giá: <strong>{state.pending.highestBidderId !== null ? state.players[state.pending.highestBidderId].name : "Chưa có"}</strong></div>
-                            <div className="player-meta" style={{ marginTop: 8, color: "var(--accent)" }}>Đến lượt: <strong>{state.players[state.pending.activeBidderId].name}</strong></div>
-
-                            <div className="decision-actions" style={{ marginTop: 12, flexDirection: "column" }}>
-                              <div style={{ display: 'flex', gap: 8, width: '100%', justifyContent: 'center' }}>
-                                <input
-                                  className="input"
-                                  type="number"
-                                  placeholder="Giá"
-                                  style={{ width: 100, textAlign: "center" }}
-                                  value={auctionBid}
-                                  onChange={(e) => setAuctionBid(Number(e.target.value))}
-                                />
-                                <button className="primary" onClick={() => dispatchAction({ type: "AUCTION_BID", payload: { bid: auctionBid } })}>Ra giá</button>
+                            {state.phase === "buy_back_decision" && state.pending?.squareId !== undefined && (
+                              <div className="decision-box" style={{ background: "rgba(255, 255, 255, 0.95)", border: "1px solid rgba(99, 102, 241, 0.2)", backdropFilter: "blur(12px)", color: "#1e293b", minWidth: 320, borderRadius: 16, padding: 20, boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}>
+                                <div className="decision-title">Mua lại {BOARD[state.pending.squareId].name}?</div>
+                                <div className="player-meta" style={{ marginBottom: 8 }}>
+                                  Giá mua lại: <strong style={{ color: "#4f4" }}>{formatMoney(state.pending.buyBackCost)}</strong><br />
+                                  (Tiền thuê: {formatMoney(state.pending.rent)})
+                                </div>
+                                <div className="decision-actions" style={{ flexDirection: "column" }}>
+                                  <button className="primary" onClick={() => dispatchAction({ type: "BUY_OWNED_PROPERTY" })}>Mua lại</button>
+                                  <button className="ghost" onClick={() => dispatchAction({ type: "DECLINE_BUY_OWNED_PROPERTY" })}>Chỉ trả thuê ({formatMoney(state.pending.rent)})</button>
+                                </div>
                               </div>
-                              <button className="ghost" style={{ width: '100%' }} onClick={() => dispatchAction({ type: "AUCTION_PASS" })}>Bỏ lượt đấu giá</button>
-                            </div>
-                          </div>
-                        )}
+                            )}
 
-                        {state.phase === "jail_choice" && activePlayer && (
-                          <div className="decision-box" style={{ background: "rgba(255, 255, 255, 0.95)", color: "#1e293b", border: "1px solid rgba(99, 102, 241, 0.2)", borderRadius: 16, padding: 20, boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}>
-                            <div className="decision-title">Trong tù</div>
-                            <div className="decision-actions" style={{ flexDirection: "column" }}>
-                              <button className="primary" onClick={() => dispatchAction({ type: "JAIL_ROLL" })}>Đổ đôi</button>
-                              <button className="ghost" onClick={() => dispatchAction({ type: "JAIL_PAY" })}>Nộp $50</button>
-                            </div>
-                          </div>
-                        )}
+                            {state.phase === "upgrade_decision" && state.pending?.squareId !== undefined && (
+                              <div className="decision-box" style={{ background: "rgba(255, 255, 255, 0.95)", border: "1px solid rgba(99, 102, 241, 0.2)", backdropFilter: "blur(12px)", color: "#1e293b", borderRadius: 16, padding: 20, boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}>
+                                <div className="decision-title">Nâng cấp {BOARD[state.pending.squareId].name}?</div>
+                                <div className="player-meta">Giá: <strong>{formatMoney(BOARD[state.pending.squareId].houseCost)}</strong></div>
+                                <div className="decision-actions">
+                                  <button className="primary" onClick={() => dispatchAction({ type: "UPGRADE_CONFIRM" })}>Nâng cấp</button>
+                                  <button className="ghost" onClick={() => dispatchAction({ type: "UPGRADE_DECLINE" })}>Bỏ qua</button>
+                                  <button className="ghost" style={{ border: "1px solid #ff5252", color: "#ff5252" }} onClick={() => dispatchAction({ type: "SELL_PROPERTY", payload: { squareId: state.pending.squareId } })}>Bán (${BOARD[state.pending.squareId].price})</button>
+                                </div>
+                              </div>
+                            )}
 
-                        {activePlayer && activePlayer.inJail && state.phase === "await_roll" && (
-                          <div className="player-meta">Đang ở tù.</div>
+                            {state.phase === "auction" && state.pending && (
+                              <div className="decision-box" style={{ background: "rgba(255, 255, 255, 0.95)", border: "1px solid rgba(99, 102, 241, 0.2)", backdropFilter: "blur(12px)", color: "#1e293b", minWidth: 280, borderRadius: 16, padding: 20, boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}>
+                                <div className="decision-title">Đấu giá: {BOARD[state.pending.squareId].name}</div>
+                                <div className="player-meta">Giá cao nhất: <strong style={{ color: "#4f4" }}>{formatMoney(state.pending.highestBid)}</strong></div>
+                                <div className="player-meta">Người giữ giá: <strong>{state.pending.highestBidderId !== null ? state.players[state.pending.highestBidderId].name : "Chưa có"}</strong></div>
+                                <div className="player-meta" style={{ marginTop: 8, color: "var(--accent)" }}>Đến lượt: <strong>{state.players[state.pending.activeBidderId].name}</strong></div>
+
+                                <div className="decision-actions" style={{ marginTop: 12, flexDirection: "column" }}>
+                                  <div style={{ display: 'flex', gap: 8, width: '100%', justifyContent: 'center' }}>
+                                    <input
+                                      className="input"
+                                      type="number"
+                                      placeholder="Giá"
+                                      style={{ width: 100, textAlign: "center" }}
+                                      value={auctionBid}
+                                      onChange={(e) => setAuctionBid(Number(e.target.value))}
+                                    />
+                                    <button className="primary" onClick={() => dispatchAction({ type: "AUCTION_BID", payload: { bid: auctionBid } })}>Ra giá</button>
+                                  </div>
+                                  <button className="ghost" style={{ width: '100%' }} onClick={() => dispatchAction({ type: "AUCTION_PASS" })}>Bỏ lượt đấu giá</button>
+                                </div>
+                              </div>
+                            )}
+
+                            {state.phase === "jail_choice" && activePlayer && (
+                              <div className="decision-box" style={{ background: "rgba(255, 255, 255, 0.95)", color: "#1e293b", border: "1px solid rgba(99, 102, 241, 0.2)", borderRadius: 16, padding: 20, boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}>
+                                <div className="decision-title">Trong tù</div>
+                                <div className="decision-actions" style={{ flexDirection: "column" }}>
+                                  <button className="primary" onClick={() => dispatchAction({ type: "JAIL_ROLL" })}>Đổ đôi</button>
+                                  <button className="ghost" onClick={() => dispatchAction({ type: "JAIL_PAY" })}>Nộp $50</button>
+                                </div>
+                              </div>
+                            )}
+
+                            {activePlayer && activePlayer.inJail && state.phase === "await_roll" && (
+                              <div className="player-meta">Đang ở tù.</div>
+                            )}
+                          </>
                         )}
 
                       </>

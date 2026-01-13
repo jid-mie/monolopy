@@ -34,7 +34,8 @@ export function createInitialState(playerNames, aiFlags = []) {
     jailTurns: 0,
     jailCards: { chance: 0, chest: 0 },
     bankrupt: false,
-    isAI: Boolean(aiFlags[index])
+    isAI: Boolean(aiFlags[index]),
+    rounds: 0,
   }));
 
   const properties = {};
@@ -149,7 +150,8 @@ export function movePlayer(state, playerId, steps) {
       ? {
         ...p,
         position: next,
-        cash: passedGo ? p.cash + GO_BONUS : p.cash
+        cash: passedGo ? p.cash + GO_BONUS : p.cash,
+        rounds: passedGo ? (p.rounds || 0) + 1 : (p.rounds || 0)
       }
       : p
   );
