@@ -174,11 +174,6 @@ function resolveLanding(state, playerId, diceTotal, rentMultiplier = 1) {
       return logWithLimit(nextState, `${nextState.players[playerId].name} dừng tại ${square.name}.`);
     }
 
-    const player = nextState.players[playerId];
-    if ((player.rounds || 0) < 1) {
-      return logWithLimit(nextState, `${player.name} đi vào ${square.name} của ${nextState.players[info.ownerId].name} nhưng chưa qua vòng đầu nên được miễn phí.`);
-    }
-
     const rent = Math.abs(calculateRent(nextState, square.id, diceTotal, rentMultiplier));
 
     // NEW: Option to buy back property from owner

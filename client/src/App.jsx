@@ -1566,6 +1566,20 @@ export default function App() {
           </div>
         )
       }
+      {/* DEBUG OVERLAY */}
+      <div style={{
+        position: 'fixed', bottom: 10, left: 10,
+        background: 'rgba(0,0,0,0.8)', color: '#0f0',
+        padding: 10, borderRadius: 8, fontSize: 12,
+        pointerEvents: 'none', zIndex: 9999
+      }}>
+        <div>Phase: {state.phase}</div>
+        <div>Pending: {state.pending ? state.pending.type : "null"}</div>
+        <div>Active: {activePlayer ? `${activePlayer.name} ($${activePlayer.cash})` : "None"}</div>
+        <div>Rounds: {activePlayer ? activePlayer.rounds : "?"}</div>
+        <div>Control: {canControl ? "Yes" : "No"}</div>
+      </div>
+
       {
         showIntro && (
           <div className="modal-backdrop" style={{ zIndex: 9999 }}>
