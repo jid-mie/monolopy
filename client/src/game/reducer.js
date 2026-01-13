@@ -174,7 +174,7 @@ function resolveLanding(state, playerId, diceTotal, rentMultiplier = 1) {
       return logWithLimit(nextState, `${nextState.players[playerId].name} dừng tại ${square.name}.`);
     }
 
-    const rent = calculateRent(nextState, square.id, diceTotal, rentMultiplier);
+    const rent = Math.abs(calculateRent(nextState, square.id, diceTotal, rentMultiplier));
 
     // NEW: Option to buy back property from owner
     const totalValue = square.price || 0;
@@ -888,7 +888,8 @@ export function gameReducer(state, action) {
 
   if (action.type === "DECLINE_BUY_OWNED_PROPERTY") {
     if (state.phase !== "buy_back_decision" || state.pending?.type !== "buy_back") return state;
-    const { rent, ownerId } = state.pending;
+    const ownerId = state.pending.ownerId;
+    const rent = Math.abs(state.pending.rent);
 
     let nextState = updatePlayer(state, activeId, (p) => ({
       ...p,
