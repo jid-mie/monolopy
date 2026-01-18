@@ -1,5 +1,5 @@
 export const QUESTIONS = [
-  // 1. Lý thuyết quy hoạch - Tổng quan
+  // --- 10 CÂU CŨ (GIỮ NGUYÊN) ---
   {
     text: "Vai trò cơ bản nhất của lý thuyết quy hoạch là gì?",
     options: [
@@ -111,39 +111,142 @@ export const QUESTIONS = [
     difficulty: "medium"
   },
 
-  // Đúng/Sai
+  // --- 12 CÂU TỪ DANH SÁCH MỚI CỦA BẠN (Đã bỏ 3 câu trùng) ---
   {
-    text: "Lý thuyết quy hoạch chỉ có giá trị học thuật, không liên quan thực tiễn.",
-    options: ["Đúng", "Sai"],
+    text: "Bước nào trong quy trình lập quy hoạch có vai trò định hướng xuyên suốt cho toàn bộ quá trình lập quy hoạch?",
+    options: [
+      "Phân tích bối cảnh và hiện trạng",
+      "Xác định vấn đề và mục tiêu phát triển",
+      "Tổ chức tham vấn và phê duyệt quy hoạch",
+      "Theo dõi, đánh giá và điều chỉnh"
+    ],
     answerIndex: 1,
-    difficulty: "easy"
+    difficulty: "medium"
   },
   {
-    text: "Quy hoạch hiện đại hoàn toàn tách rời yếu tố chính trị.",
-    options: ["Đúng", "Sai"],
+    text: "Nội dung nào sau đây KHÔNG thuộc phân tích bối cảnh và hiện trạng trong quy hoạch phát triển?",
+    options: [
+      "Điều kiện tự nhiên và kinh tế – xã hội",
+      "Xu hướng hội nhập quốc tế và biến đổi khí hậu",
+      "Lựa chọn phương án phát triển tối ưu",
+      "Hệ thống hạ tầng và nguồn lực phát triển"
+    ],
+    answerIndex: 2,
+    difficulty: "medium"
+  },
+  {
+    text: "Vấn đề phát triển hệ thống giao thông kết nối nhiều tỉnh trong cùng một vùng kinh tế nên được giải quyết hiệu quả nhất ở cấp nào?",
+    options: [
+      "Quy hoạch quốc gia",
+      "Quy hoạch ngành",
+      "Quy hoạch vùng",
+      "Quy hoạch tỉnh"
+    ],
+    answerIndex: 2,
+    difficulty: "medium"
+  },
+  // [Bỏ 3 câu trùng: Cổ đại, Ánh sáng, Nghề nghiệp độc lập]
+  {
+    text: "Đặc điểm nổi bật của quy hoạch lý tính về mặt lý thuyết là gì?",
+    options: [
+      "Lý thuyết nội dung",
+      "Lý thuyết thủ tục",
+      "Lý thuyết hậu hiện đại",
+      "Lý thuyết phê phán"
+    ],
     answerIndex: 1,
-    difficulty: "easy"
+    difficulty: "medium"
   },
   {
-    text: "Lý thuyết giúp kết nối tri thức kỹ thuật với hành động công.",
-    options: ["Đúng", "Sai"],
-    answerIndex: 0,
-    difficulty: "easy"
+    text: "Bước nào KHÔNG thuộc quy trình lập kế hoạch lý tính?",
+    options: [
+      "Thiết lập mục tiêu",
+      "Dự báo hậu quả",
+      "Thương lượng chính trị",
+      "Đánh giá và phản hồi"
+    ],
+    answerIndex: 2,
+    difficulty: "medium"
   },
   {
-    text: "Lý thuyết quy hoạch giúp chuyển hóa tri thức kỹ thuật thành cơ sở cho ________.",
-    options: ["hành động công", "nghiên cứu khoa học", "quản lý tài chính", "giáo dục"],
+    text: "Quy hoạch lý tính được xem là một lý thuyết quy hoạch mang tính _____",
+    options: [
+      "thủ tục",
+      "thực chất",
+      "chiến lược",
+      "chỉnh trang"
+    ],
     answerIndex: 0,
     difficulty: "medium"
   },
   {
-    text: "Từ thập niên 1970, quy hoạch được nhìn nhận là quá trình mang tính ________.",
-    options: ["kỹ thuật – kinh tế", "chính trị – xã hội", "văn hóa – nghệ thuật", "tự nhiên – môi trường"],
+    text: "Một hạn chế quan trọng của quy hoạch từng bước là:",
+    options: [
+      "Quá lý tưởng",
+      "Thiếu tính thực tiễn",
+      "Dễ duy trì hiện trạng và bảo thủ",
+      "Quá thiên về lợi ích nhóm"
+    ],
+    answerIndex: 2,
+    difficulty: "medium"
+  },
+  {
+    text: "Quy hoạch biện hộ ra đời chủ yếu để phê phán mô hình nào?",
+    options: [
+      "Quy hoạch từng bước",
+      "Quy hoạch chiến lược",
+      "Quy hoạch biện hộ",
+      "Quy hoạch lý tính"
+    ],
+    answerIndex: 3,
+    difficulty: "medium"
+  },
+  {
+    text: "Lập luận cho rằng “tất cả các nhà quy hoạch đều là người biện hộ” dựa trên tiền đề nào?",
+    options: [
+      "Quy hoạch luôn mang tính kỹ thuật",
+      "Quy hoạch luôn mang tính giá trị",
+      "Quy hoạch luôn do nhà nước kiểm soát",
+      "Quy hoạch luôn vì người nghèo"
+    ],
     answerIndex: 1,
+    difficulty: "medium"
+  },
+  {
+    text: "Ba công đoạn của mô thức quy hoạch hành động gồm:",
+    options: [
+      "Phân tích – Dự báo – Kiểm tra",
+      "Chiến lược – Chi tiết – Thực hiện",
+      "Trung ương – Vùng – Tỉnh",
+      "Kế hoạch – Ngân sách – Giám sát"
+    ],
+    answerIndex: 1,
+    difficulty: "medium"
+  },
+  {
+    text: "Thời kỳ quy hoạch của quy hoạch thuộc hệ thống quy hoạch quốc gia là:",
+    options: [
+      "5 năm",
+      "10 năm",
+      "20 năm",
+      "30 năm"
+    ],
+    answerIndex: 1,
+    difficulty: "medium"
+  },
+  {
+    text: "Ví dụ nào sau đây phản ánh phân vùng theo tiêu thức tự nhiên?",
+    options: [
+      "Vùng Tây Bắc",
+      "Vùng kinh tế trọng điểm Bắc Bộ",
+      "Tỉnh, huyện, xã",
+      "Khu kinh tế ven biển"
+    ],
+    answerIndex: 0,
     difficulty: "medium"
   },
 
-  // 2.2. Quy hoạch Lý tính
+  // --- 8 CÂU KHÔI PHỤC TỪ CŨ (ĐỂ ĐỦ 30 CÂU) ---
   {
     text: "Nền tảng tư tưởng của mô hình Quy hoạch Lý tính bắt nguồn từ đâu?",
     options: [
@@ -231,115 +334,5 @@ export const QUESTIONS = [
     ],
     answerIndex: 2,
     difficulty: "medium"
-  },
-  {
-    text: "Đặc điểm nổi bật của quy hoạch lý tính về mặt lý thuyết là gì?",
-    options: [
-      "Lý thuyết nội dung",
-      "Lý thuyết thủ tục",
-      "Lý thuyết hậu hiện đại",
-      "Lý thuyết phê phán"
-    ],
-    answerIndex: 1,
-    difficulty: "hard"
-  },
-  {
-    text: "Bước nào KHÔNG thuộc quy trình lập kế hoạch lý tính?",
-    options: [
-      "Thiết lập mục tiêu",
-      "Dự báo hậu quả",
-      "Thương lượng chính trị",
-      "Đánh giá và phản hồi"
-    ],
-    answerIndex: 2,
-    difficulty: "medium"
-  },
-  {
-    text: "Quy hoạch lý tính giả định người lập kế hoạch có đầy đủ thông tin.",
-    options: ["Đúng", "Sai"],
-    answerIndex: 0,
-    difficulty: "easy"
-  },
-  {
-    text: "RPM coi sự tham gia của cộng đồng là trung tâm của quy hoạch.",
-    options: ["Đúng", "Sai"],
-    answerIndex: 1,
-    difficulty: "easy"
-  },
-  {
-    text: "Quy hoạch lý tính có thể điều chỉnh thông qua giám sát và phản hồi.",
-    options: ["Đúng", "Sai"],
-    answerIndex: 0,
-    difficulty: "easy"
-  },
-  {
-    text: "Quy hoạch lý tính được xem là một lý thuyết quy hoạch mang tính ________.",
-    options: ["nội dung", "thủ tục", "cách mạng", "truyền thống"],
-    answerIndex: 1,
-    difficulty: "hard"
-  },
-  {
-    text: "Khái niệm “lý tính giới hạn” do học giả nào đề xuất?",
-    options: ["Herbert Simon", "Karl Marx", "Max Weber", "John Keynes"],
-    answerIndex: 0,
-    difficulty: "hard"
-  },
-
-  // 2.3. Quy hoạch từng bước
-  {
-    text: "Cơ sở lý luận quan trọng nhất của mô hình quy hoạch từng bước là:",
-    options: [
-      "Lợi ích công cộng thống nhất",
-      "Lý tính tuyệt đối của con người",
-      "Lý tính bị giới hạn",
-      "Quy hoạch toàn diện"
-    ],
-    answerIndex: 2,
-    difficulty: "hard"
-  },
-  {
-    text: "Nhận định nào phản ánh đúng nhất lập trường của Lindblom về quy hoạch từng bước?",
-    options: [
-      "Là mô hình lý tưởng",
-      "Mô tả thực tiễn hơn là chuẩn tắc",
-      "Phủ nhận vai trò chính trị",
-      "Ưu tiên công bằng xã hội"
-    ],
-    answerIndex: 1,
-    difficulty: "hard"
-  },
-  {
-    text: "Phê phán cho rằng quy hoạch từng bước “bảo thủ về chính trị” xuất phát từ đặc điểm nào?",
-    options: [
-      "Phụ thuộc vào phân tích kỹ thuật",
-      "Tôn trọng mạnh mẽ hiện trạng và thể chế sẵn có",
-      "Đặt mục tiêu dài hạn rõ ràng",
-      "Nhấn mạnh vai trò cộng đồng"
-    ],
-    answerIndex: 1,
-    difficulty: "medium"
-  },
-  {
-    text: "Đặc trưng cốt lõi của quy hoạch từng bước là:",
-    options: [
-      "Phân tích toàn diện mọi phương án",
-      "Tìm kiếm phương án tối ưu",
-      "Thực hiện các điều chỉnh nhỏ, tiệm tiến",
-      "Áp dụng quy hoạch từ trên xuống"
-    ],
-    answerIndex: 2,
-    difficulty: "easy"
-  },
-  {
-    text: "Trong quy hoạch từng bước, các nhà ra quyết định thường:",
-    options: [
-      "Xác lập mục tiêu dài hạn rõ ràng trước",
-      "So sánh các thay đổi nhỏ với hiện trạng",
-      "Phân tích đầy đủ mọi hệ quả",
-      "Mô hình hóa toán học phức tạp"
-    ],
-    answerIndex: 1,
-    difficulty: "medium"
-  },
-
+  }
 ];

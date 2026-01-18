@@ -167,7 +167,8 @@ export default function App() {
   const needsFunds = activePlayer && activePlayer.cash < 0;
   const [isRolling, setIsRolling] = useState(false);
   const [displayRoll, setDisplayRoll] = useState(null);
-  const [questionTimer, setQuestionTimer] = useState(15);
+  const [questionTimer, setQuestionTimer] = useState(20);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
   const rollIntervalRef = useRef(null);
   const questionTimerRef = useRef(null);
 
@@ -201,10 +202,12 @@ export default function App() {
       questionTimerRef.current = null;
     }
     if (state.phase !== "question" || !state.pending?.type === "question") {
-      setQuestionTimer(15);
+      setQuestionTimer(20);
+      setSelectedAnswer(null);
       return;
     }
-    setQuestionTimer(15);
+    setQuestionTimer(20);
+    setSelectedAnswer(null);
     questionTimerRef.current = setInterval(() => {
       setQuestionTimer((prev) => {
         if (prev <= 1) {
@@ -220,6 +223,14 @@ export default function App() {
       if (questionTimerRef.current) clearInterval(questionTimerRef.current);
     };
   }, [state.phase, state.pending?.questionIndex]);
+
+  const handleQuestionAnswer = (index) => {
+    if (selectedAnswer !== null) return;
+    setSelectedAnswer(index);
+    setTimeout(() => {
+      dispatchAction({ type: "QUESTION_ANSWER", payload: { choiceIndex: index } });
+    }, 1500);
+  };
 
   useEffect(() => {
     if (mode !== "online") {
@@ -1247,11 +1258,27 @@ export default function App() {
               )}
               <div className="question-text">{state.pending.question?.text}</div>
               <div className="question-options">
-                {state.pending.question?.options?.map((option, index) => (
-                  <button key={index} className="ghost" onClick={() => dispatchAction({ type: "QUESTION_ANSWER", payload: { choiceIndex: index } })}>
-                    {option}
-                  </button>
-                ))}
+                {state.pending.question?.options?.map((option, index) => {
+                  let style = {};
+                  if (selectedAnswer !== null) {
+                    if (index === state.pending.question.answerIndex) {
+                      style = { backgroundColor: '#4ade80', color: '#fff', borderColor: '#22c55e' };
+                    } else if (index === selectedAnswer) {
+                      style = { backgroundColor: '#f87171', color: '#fff', borderColor: '#ef4444' };
+                    }
+                  }
+                  return (
+                    <button
+                      key={index}
+                      className="ghost"
+                      style={style}
+                      onClick={() => handleQuestionAnswer(index)}
+                      disabled={selectedAnswer !== null}
+                    >
+                      {option}
+                    </button>
+                  );
+                })}
               </div>
               {questionTimer <= 5 && (
                 <div style={{ textAlign: 'center', marginTop: '12px', color: '#ff4444', fontWeight: '600', animation: 'pulse 0.5s infinite' }}>

@@ -758,28 +758,7 @@ export function gameReducer(state, action) {
     );
   }
 
-  if (action.type === "BUY_BACK") {
-    const { squareId } = action.payload;
-    const square = getSquare(squareId);
-    const info = state.properties[squareId];
-    const player = state.players[activeId];
-    if (!square || !info || info.ownerId !== null && info.ownerId !== undefined) return state;
-    if (!["property", "railroad", "utility"].includes(square.type)) return state;
-    if (player.cash < square.price) return state;
-    const nextState = {
-      ...state,
-      properties: {
-        ...state.properties,
-        [squareId]: { ...info, ownerId: activeId }
-      },
-      players: state.players.map((p) =>
-        p.id === activeId
-          ? { ...p, cash: p.cash - square.price, properties: [...p.properties, squareId] }
-          : p
-      )
-    };
-    return logWithLimit(nextState, `${player.name} mua lại ${square.name} với giá $${square.price}.`);
-  }
+
 
   if (action.type === "DECLARE_BANKRUPTCY") {
     const creditorId = state.lastCreditorId;
@@ -917,11 +896,21 @@ export function gameReducer(state, action) {
     // Just log and move on.
 
     const description = state.pending.text;
+    const amount = state.pending.amount || 0;
+
+    let nextState = state;
+    if (amount > 0) {
+      nextState = updatePlayer(state, activeId, (p) => ({
+        ...p,
+        cash: p.cash - amount
+      }));
+    }
+
     return logWithLimit({
-      ...state,
+      ...nextState,
       phase: "post_roll",
       pending: null
-    }, `${state.players[activeId].name} chấp nhận hình phạt: "${description}".`);
+    }, `${state.players[activeId].name} chấp nhận hình phạt: "${description}" (mất $${amount}).`);
   }
 
   return state;
