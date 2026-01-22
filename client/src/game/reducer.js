@@ -88,6 +88,41 @@ function updatePlayer(state, playerId, updater) {
   };
 }
 
+function declareBankruptcy(state, playerId, creditorId = null, force = false) {
+  const player = state.players[playerId];
+  if (!player || player.bankrupt) return state;
+  if (!force && player.cash >= 0) return state;
+
+  let nextState = {
+    ...state,
+    players: state.players.map((p) =>
+      p.id === playerId ? { ...p, bankrupt: true, properties: [], cash: 0 } : p
+    ),
+    properties: { ...state.properties }
+  };
+
+  player.properties.forEach((squareId) => {
+    if (creditorId !== null && creditorId !== undefined) {
+      nextState.properties[squareId] = { ...nextState.properties[squareId], ownerId: creditorId, mortgaged: false, houses: 0 };
+      nextState = updatePlayer(nextState, creditorId, (p) => ({
+        ...p,
+        properties: [...p.properties, squareId]
+      }));
+    } else {
+      nextState.properties[squareId] = { ...nextState.properties[squareId], ownerId: null, mortgaged: false, houses: 0 };
+    }
+  });
+
+  nextState = logWithLimit(nextState, `${player.name} tuyên bố phá sản.`);
+  nextState = { ...nextState, activePlayerIndex: getNextActiveIndex(nextState), phase: "await_roll", lastCreditorId: null };
+
+  if (allButOneBankrupt(nextState.players)) {
+    return { ...nextState, phase: "game_over" };
+  }
+
+  return setPhaseForPlayer(nextState);
+}
+
 function resolveLanding(state, playerId, diceTotal, rentMultiplier = 1) {
   let nextState = state;
   const square = getSquare(nextState.players[playerId].position);
@@ -198,7 +233,12 @@ function resolveLanding(state, playerId, diceTotal, rentMultiplier = 1) {
       ...nextState,
       lastCreditorId: ownerId
     };
-    nextState = logWithLimit(nextState, `${nextState.players[currentPlayerId].name} trả $${rent} tiền thuê cho ${nextState.players[ownerId].name}.`);
+    nextState = logWithLimit(
+      nextState,
+      `${nextState.players[currentPlayerId].name} trả $${rent} tiền thuê cho ${nextState.players[ownerId].name}. (Số dư người trả: $${nextState.players[currentPlayerId].cash}, người nhận: $${nextState.players[ownerId].cash})`
+    );
+    const bankruptState = declareBankruptcy(nextState, currentPlayerId, ownerId);
+    if (bankruptState !== nextState) return bankruptState;
 
     // NEW: Option to buy back property from owner
     // Cost is just Value + Houses (Rent is already paid)
@@ -245,6 +285,9 @@ function resolveLanding(state, playerId, diceTotal, rentMultiplier = 1) {
     nextState = { ...nextState, decks: { ...nextState.decks, [deckName]: newDeck } };
     const applied = applyCardEffect(nextState, playerId, card, diceTotal, deckName);
     nextState = applied.state;
+
+    const bankruptState = declareBankruptcy(nextState, playerId);
+    if (bankruptState !== nextState) return bankruptState;
 
     if (applied.landed) {
       const multiplier = applied.rentMultiplier || 1;
@@ -484,6 +527,8 @@ export function gameReducer(state, action) {
           ...player,
           cash: player.cash - WRONG_ANSWER_PENALTY
         }));
+        const bankruptState = declareBankruptcy(penaltyState, activeId);
+        if (bankruptState !== penaltyState) return bankruptState;
         const message = `Trả lời sai. Không được giảm giá và bị phạt $${WRONG_ANSWER_PENALTY}. (Còn ${remainingQuestions} câu hỏi)`;
         return logWithLimit({
           ...penaltyState,
@@ -505,6 +550,8 @@ export function gameReducer(state, action) {
         ...player,
         cash: player.cash - totalPenalty
       }));
+      const bankruptState = declareBankruptcy(nextState, activeId);
+      if (bankruptState !== nextState) return bankruptState;
       return logWithLimit({ ...nextState, usedQuestionIds, phase: "post_roll", pending: null }, `Trả lời sai. Bị phạt $${amount} tiền thuế và thêm $${WRONG_ANSWER_PENALTY} phạt trả lời sai. (Còn ${remainingQuestions} câu hỏi)`);
     }
 
@@ -776,37 +823,7 @@ export function gameReducer(state, action) {
 
 
   if (action.type === "DECLARE_BANKRUPTCY") {
-    const creditorId = state.lastCreditorId;
-    const player = state.players[activeId];
-
-    let nextState = {
-      ...state,
-      players: state.players.map((p) =>
-        p.id === activeId ? { ...p, bankrupt: true, properties: [], cash: 0 } : p
-      ),
-      properties: { ...state.properties }
-    };
-
-    player.properties.forEach((squareId) => {
-      if (creditorId !== null && creditorId !== undefined) {
-        nextState.properties[squareId] = { ...nextState.properties[squareId], ownerId: creditorId, mortgaged: false, houses: 0 };
-        nextState = updatePlayer(nextState, creditorId, (p) => ({
-          ...p,
-          properties: [...p.properties, squareId]
-        }));
-      } else {
-        nextState.properties[squareId] = { ...nextState.properties[squareId], ownerId: null, mortgaged: false, houses: 0 };
-      }
-    });
-
-    nextState = logWithLimit(nextState, `${player.name} tuyên bố phá sản.`);
-    nextState = { ...nextState, activePlayerIndex: getNextActiveIndex(nextState), phase: "await_roll", lastCreditorId: null };
-
-    if (allButOneBankrupt(nextState.players)) {
-      return { ...nextState, phase: "game_over" };
-    }
-
-    return setPhaseForPlayer(nextState);
+    return declareBankruptcy(state, activeId, state.lastCreditorId, true);
   }
 
   if (action.type === "TRADE_EXECUTE") {
@@ -906,6 +923,8 @@ export function gameReducer(state, action) {
         cash: p.cash - amount
       }));
     }
+    const bankruptState = declareBankruptcy(nextState, activeId);
+    if (bankruptState !== nextState) return bankruptState;
 
     return logWithLimit({
       ...nextState,
