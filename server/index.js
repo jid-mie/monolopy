@@ -274,6 +274,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("dispatch_action", ({ action }) => {
+    console.log(`[SERVER] Received action: ${action.type}`, JSON.stringify(action));
     const room = findRoomBySocket(socket.id);
     if (!room || !room.started || !room.state) return;
 

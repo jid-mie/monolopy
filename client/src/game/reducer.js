@@ -97,9 +97,15 @@ function resolveLanding(state, playerId, diceTotal, rentMultiplier = 1) {
   // Property / Railroad / Utility
   if (["property", "railroad", "utility"].includes(square.type)) {
     const info = nextState.properties[square.id];
+    const ownerId = info.ownerId !== null && info.ownerId !== undefined ? Number(info.ownerId) : null;
+    const currentPlayerId = Number(playerId);
 
-    // Unowned
-    if (!info.ownerId && info.ownerId !== 0) {
+    console.log(`[DEBUG] Landed on ${square.name} (${square.id}). Owner: ${ownerId}, Current: ${currentPlayerId}`);
+
+    // Unowned property
+    if (ownerId === null) {
+      console.log(`[DEBUG] Property ${square.name} is UNOWNED.`);
+
       // Check if questions are exhausted - end game
       if (isQuestionsExhausted(nextState)) {
         return {
@@ -108,6 +114,7 @@ function resolveLanding(state, playerId, diceTotal, rentMultiplier = 1) {
           gameOverReason: "questions_exhausted"
         };
       }
+
 
       // 90% Chance for Question
       if (Math.random() < 0.90) {
@@ -146,9 +153,9 @@ function resolveLanding(state, playerId, diceTotal, rentMultiplier = 1) {
       };
     }
 
-    if (info.ownerId === playerId) {
-      const canUpgrade = canBuildHouse(nextState, playerId, square.id);
-      const player = nextState.players[playerId];
+    if (ownerId === currentPlayerId) {
+      const canUpgrade = canBuildHouse(nextState, currentPlayerId, square.id);
+      const player = nextState.players[currentPlayerId];
 
       if (canUpgrade) {
         if (player.cash >= (square.houseCost || 0)) {
@@ -171,44 +178,50 @@ function resolveLanding(state, playerId, diceTotal, rentMultiplier = 1) {
     }
 
     if (info.mortgaged) {
-      return logWithLimit(nextState, `${nextState.players[playerId].name} dừng tại ${square.name}.`);
+      return logWithLimit(nextState, `${nextState.players[currentPlayerId].name} dừng tại ${square.name}.`);
     }
 
     const rent = Math.abs(calculateRent(nextState, square.id, diceTotal, rentMultiplier));
+    console.log(`[DEBUG] Rent calculated for ${square.name}: ${rent}`);
+
+    // Deduct rent IMMEDIATELY (User Request: "trừ tiền ngay")
+    // Use currentPlayerId (Number) ensuring updatePlayer works
+    nextState = updatePlayer(nextState, currentPlayerId, (player) => ({
+      ...player,
+      cash: player.cash - rent
+    }));
+    nextState = updatePlayer(nextState, ownerId, (player) => ({
+      ...player,
+      cash: player.cash + rent
+    }));
+    nextState = {
+      ...nextState,
+      lastCreditorId: ownerId
+    };
+    nextState = logWithLimit(nextState, `${nextState.players[currentPlayerId].name} trả $${rent} tiền thuê cho ${nextState.players[ownerId].name}.`);
 
     // NEW: Option to buy back property from owner
+    // Cost is just Value + Houses (Rent is already paid)
     const totalValue = square.price || 0;
     const houseValue = (info.houses || 0) * (square.houseCost || 0);
-    const buyBackCost = totalValue + houseValue + rent;
+    const buyBackCost = totalValue + houseValue;
 
-    // Only offer buy back if player can afford it
-    if (nextState.players[playerId].cash >= buyBackCost) {
+    // Only offer buy back if player can afford it (checking new cash balance)
+    if (nextState.players[currentPlayerId].cash >= buyBackCost) {
       return {
         ...nextState,
         phase: "buy_back_decision",
         pending: {
           type: "buy_back",
           squareId: square.id,
-          rent: rent,
+          rent: rent, // Pass actual rent for display validation
           buyBackCost: buyBackCost,
-          ownerId: info.ownerId
+          ownerId: ownerId
         }
       };
     }
 
-    nextState = updatePlayer(nextState, playerId, (player) => ({
-      ...player,
-      cash: player.cash - rent
-    }));
-    nextState = updatePlayer(nextState, info.ownerId, (player) => ({
-      ...player,
-      cash: player.cash + rent
-    }));
-    nextState = {
-      ...nextState,
-      lastCreditorId: info.ownerId
-    };
-    return logWithLimit(nextState, `${nextState.players[playerId].name} trả $${rent} tiền thuê cho ${nextState.players[info.ownerId].name}.`);
+    return nextState;
   }
 
   // Penalty Square - Show Modal
@@ -336,10 +349,12 @@ export function gameReducer(state, action) {
     nextState = movePlayer(nextState, activeId, roll.total);
     nextState = resolveLanding(nextState, activeId, roll.total);
 
-    if (["buy_decision", "question", "auction", "upgrade_decision", "penalty"].includes(nextState.phase)) {
+    if (["buy_decision", "question", "auction", "upgrade_decision", "penalty", "buy_back_decision"].includes(nextState.phase)) {
+      console.log("ROLL: Keeping phase", nextState.phase);
       return nextState;
     }
 
+    console.log("ROLL: Overwriting phase to post_roll. Previous was:", nextState.phase);
     return { ...nextState, phase: "post_roll" };
   }
 
@@ -867,26 +882,12 @@ export function gameReducer(state, action) {
 
   if (action.type === "DECLINE_BUY_OWNED_PROPERTY") {
     if (state.phase !== "buy_back_decision" || state.pending?.type !== "buy_back") return state;
-    const ownerId = state.pending.ownerId;
-    const rent = Math.abs(state.pending.rent);
-
-    let nextState = updatePlayer(state, activeId, (p) => ({
-      ...p,
-      cash: p.cash - rent
-    }));
-    nextState = updatePlayer(nextState, ownerId, (p) => ({
-      ...p,
-      cash: p.cash + rent
-    }));
-
-    nextState = {
-      ...nextState,
-      lastCreditorId: ownerId,
+    // Rent was already deducted in resolveLanding. Just move phase.
+    return {
+      ...state,
       phase: "post_roll",
       pending: null
     };
-
-    return logWithLimit(nextState, `${state.players[activeId].name} trả $${rent} tiền thuê cho ${state.players[ownerId].name}.`);
   }
 
   if (action.type === "PENALTY_OK") {
