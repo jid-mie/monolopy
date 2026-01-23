@@ -612,6 +612,14 @@
   padding-bottom: 2px;
 }
 
+.square-subtext {
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  text-align: center;
+  margin-top: 2px;
+}
+
 .square-icon {
   width: 28px;
   /* Slightly smaller to give text space */

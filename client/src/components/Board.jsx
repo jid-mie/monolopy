@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { JAIL_BAIL } from "../game/engine";
 
 const colorMap = {
   brown: "#8D6E63",      // Warm Cocoa
@@ -270,6 +271,9 @@ export default function Board({ board, properties, players, activePlayerId, colo
                   </div>
                 )}
                 <div className="square-name">{square.name}</div>
+                {square.type === "jail" && (
+                  <div className="square-subtext">Bảo lãnh: ${JAIL_BAIL}</div>
+                )}
                 {square.price && (
                   <div className="square-price">${square.price}</div>
                 )}
