@@ -3,7 +3,7 @@ import { io } from "socket.io-client";
 import Board from "./components/Board";
 import { gameReducer } from "./game/reducer";
 import { BOARD, LIQUIDITY } from "./game/board";
-import { canBuildHouse, canSellHouse } from "./game/engine";
+import { canBuildHouse, canSellHouse, JAIL_BAIL } from "./game/engine";
 import { QUESTIONS } from "./game/questions";
 import "./App.css";
 
@@ -157,6 +157,9 @@ export default function App() {
     : localState;
 
   const activePlayer = state?.players?.[state?.activePlayerIndex];
+  const isPresenter = mode === "online" && roomInfo?.presentationMode && youId === roomInfo.hostId;
+  const isSpectator = mode === "online" && roomInfo?.presentationMode && youId !== roomInfo.hostId;
+  const canControl = mode === "local" || !roomInfo?.presentationMode || isPresenter;
 
   const ownedGroups = useMemo(() => {
     if (!activePlayer) return {};
@@ -201,7 +204,7 @@ export default function App() {
       clearInterval(questionTimerRef.current);
       questionTimerRef.current = null;
     }
-    if (state.phase !== "question" || !state.pending?.type === "question") {
+    if (state.phase !== "question" || state.pending?.type !== "question") {
       setQuestionTimer(20);
       setSelectedAnswer(null);
       return;
@@ -213,7 +216,9 @@ export default function App() {
         if (prev <= 1) {
           clearInterval(questionTimerRef.current);
           questionTimerRef.current = null;
-          dispatchAction({ type: "QUESTION_ANSWER", payload: { choiceIndex: -1 } });
+          if (!isSpectator) {
+            dispatchAction({ type: "QUESTION_ANSWER", payload: { choiceIndex: -1 } });
+          }
           return 0;
         }
         return prev - 1;
@@ -222,9 +227,10 @@ export default function App() {
     return () => {
       if (questionTimerRef.current) clearInterval(questionTimerRef.current);
     };
-  }, [state.phase, state.pending?.questionIndex]);
+  }, [state.phase, state.pending?.questionIndex, state.pending?.type, isSpectator]);
 
   const handleQuestionAnswer = (index) => {
+    if (isSpectator) return;
     if (selectedAnswer !== null) return;
     setSelectedAnswer(index);
     setTimeout(() => {
@@ -422,7 +428,7 @@ export default function App() {
       return;
     }
     if (state.phase === "jail_choice") {
-      runAction({ type: activePlayer.cash >= 250 ? "JAIL_PAY" : "JAIL_ROLL" });
+      runAction({ type: activePlayer.cash >= JAIL_BAIL * 2.5 ? "JAIL_PAY" : "JAIL_ROLL" });
       return;
     }
     if (state.phase === "buy_decision" && state.pending?.squareId !== undefined) {
@@ -843,7 +849,9 @@ export default function App() {
                   {selectedSquare.type === "jail" && (
                     <div className="info-row" style={{ display: "block" }}>
                       <span style={{ display: "block", marginBottom: 4 }}>Quy tắc:</span>
-                      <strong style={{ fontWeight: "normal", color: "#ddd" }}>Thăm tù (nếu đi vào) hoặc Ở tù (nếu bị bắt). Cần đổ đôi hoặc trả tiền để ra.</strong>
+                      <strong style={{ fontWeight: "normal", color: "#ddd" }}>
+                        Thăm tù (nếu đi vào) hoặc Ở tù (nếu bị bắt). Cần đổ đôi hoặc nộp {formatMoney(JAIL_BAIL)} để ra.
+                      </strong>
                     </div>
                   )}
                   {selectedSquare.type === "free_parking" && (
@@ -855,7 +863,7 @@ export default function App() {
                   {selectedSquare.type === "go_to_jail" && (
                     <div className="info-row">
                       <span>Hành động:</span>
-                      <strong>Đi tù ngay lập tức!</strong>
+                      <strong>Đi tù ngay lập tức! Bạn sẽ cần đổ đôi hoặc nộp {formatMoney(JAIL_BAIL)} để ra.</strong>
                     </div>
                   )}
 
@@ -943,10 +951,6 @@ export default function App() {
                   </div>
 
                   {(() => {
-                    const isPresenter = mode === "online" && roomInfo?.presentationMode && youId === roomInfo.hostId;
-                    const isSpectator = mode === "online" && roomInfo?.presentationMode && youId !== roomInfo.hostId;
-                    const canControl = mode === "local" || !roomInfo?.presentationMode || isPresenter;
-
                     return (
                       <>
                         <div className="dice-readout" style={{ justifyContent: "center", marginBottom: 16 }}>
@@ -1039,7 +1043,7 @@ export default function App() {
                                 <div className="decision-title">Trong tù</div>
                                 <div className="decision-actions" style={{ flexDirection: "column" }}>
                                   <button className="primary" onClick={() => dispatchAction({ type: "JAIL_ROLL" })}>Đổ đôi</button>
-                                  <button className="ghost" onClick={() => dispatchAction({ type: "JAIL_PAY" })}>Nộp $50</button>
+                                  <button className="ghost" onClick={() => dispatchAction({ type: "JAIL_PAY" })}>Nộp {formatMoney(JAIL_BAIL)}</button>
                                 </div>
                               </div>
                             )}
@@ -1256,6 +1260,11 @@ export default function App() {
                   Đúng nhận ${CHALLENGE_REWARD[state.pending.question?.difficulty]?.win || 50}, sai mất ${CHALLENGE_REWARD[state.pending.question?.difficulty]?.lose || 20}.
                 </div>
               )}
+              {isSpectator && (
+                <div className="player-meta" style={{ marginTop: 4, color: "#334155" }}>
+                  Chỉ Host được chọn đáp án trong chế độ thuyết trình. Bạn sẽ thấy kết quả sau khi Host chọn.
+                </div>
+              )}
               <div className="question-text">{state.pending.question?.text}</div>
               <div className="question-options">
                 {state.pending.question?.options?.map((option, index) => {
@@ -1271,9 +1280,9 @@ export default function App() {
                     <button
                       key={index}
                       className="ghost"
-                      style={style}
+                      style={{ ...style, opacity: isSpectator ? 0.7 : 1, cursor: isSpectator ? "not-allowed" : "pointer" }}
                       onClick={() => handleQuestionAnswer(index)}
-                      disabled={selectedAnswer !== null}
+                      disabled={selectedAnswer !== null || isSpectator}
                     >
                       {option}
                     </button>
